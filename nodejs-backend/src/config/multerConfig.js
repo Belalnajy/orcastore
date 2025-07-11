@@ -2,12 +2,9 @@ const multer = require('multer');
 const path = require('path');
 
 // Set up storage engine
-const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
-});
+// On serverless platforms like Vercel, the filesystem is read-only.
+// We must use memoryStorage to avoid crashes. File uploads will be handled in memory.
+const storage = multer.memoryStorage();
 
 // Check file type
 function checkFileType(file, cb) {

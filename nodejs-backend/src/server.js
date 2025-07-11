@@ -10,6 +10,11 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
+// Vercel has a read-only filesystem, so we can't use disk storage for uploads.
+// For now, we'll use memory storage to prevent crashes. A cloud storage provider is the long-term solution.
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 // Make uploads folder static
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
