@@ -4,7 +4,18 @@ const path = require('path');
 // Set storage engine
 // On serverless platforms like Vercel, the filesystem is read-only.
 // We must use memoryStorage to avoid crashes. File uploads will be handled in memory.
-const storage = multer.memoryStorage();
+const cloudinary = require('../config/cloudinaryConfig');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Set storage engine to Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'orcastore',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+    // transformation: [{ width: 500, height: 500, crop: 'limit' }] // Optional: resize images on upload
+  },
+});
 
 // Init upload
 const upload = multer({
