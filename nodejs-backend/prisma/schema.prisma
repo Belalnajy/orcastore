@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// --- ENUMS ---
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  PAID
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentMethod {
+  CARD
+  VODAFONE_CASH
+  CASH_ON_DELIVERY
+}
+
+// --- MODELS ---
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String?
+  password  String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+  carts  Cart[]
+}
+
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String    @unique
+  description String
+  price       Float // Changed from Decimal
+  stock       Int       @default(0)
+  images       String[]
+  isActive    Boolean   @default(true)
+  features    String[]
+  sizes       String[]
+  colors      String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  categoryId String    @db.ObjectId
+  category   Category  @relation(fields: [categoryId], references: [id])
+
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+}
+
+model Order {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String      @unique @default(uuid()) // This is a business logic ID, keep as is.
+  fullName    String
+  email       String
+  phone       String
+  address     String
+  city        String
+  status      OrderStatus @default(PENDING)
+  totalAmount Float // Changed from Decimal
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  userId    String?     @db.ObjectId
+  user      User?       @relation(fields: [userId], references: [id])
+
+  items   OrderItem[]
+  payment PaymentInfo?
+}
+
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int     @default(1)
+  price     Float   // Snapshot price at purchase time
+
+  // Variant attributes
+  size      String?
+  color     String?
+
+  orderId   String  @db.ObjectId
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model PaymentInfo {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  paymentId       String?
+  paymobOrderId   String?
+  transactionId   String?
+  amount          Float // Changed from Decimal
+  paymentMethod   PaymentMethod @default(CARD)
+  status          PaymentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  orderId String  @unique @db.ObjectId
+  order   Order   @relation(fields: [orderId], references: [id])
+}
+
+model Cart {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
+
+  items CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int      @default(1)
+  size      String?
+  color     String?
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartId    String  @db.ObjectId
+  cart      Cart    @relation(fields: [cartId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId, size, color])
+}
