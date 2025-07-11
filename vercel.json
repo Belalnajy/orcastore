@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "nodejs-backend/src/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "frontend/next.config.js",
+      "use": "@vercel/next",
+      "config": { "distDir": ".next" }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/nodejs-backend/src/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ]
+}
