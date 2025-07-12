@@ -24,7 +24,7 @@ const upload = multer({
   fileFilter: function(req, file, cb){
     checkFileType(file, cb);
   }
-}).single('image'); // 'image' is the field name from the form
+}).array('images', 10); // 'images' is the field name, allowing up to 10 files
 
 // Check file type
 function checkFileType(file, cb){
