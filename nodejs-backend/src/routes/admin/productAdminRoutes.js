@@ -7,7 +7,7 @@ const {
   getProductById
 } = require("../../controllers/admin/productAdminController");
 const { protect, admin } = require("../../middleware/authMiddleware");
-const upload = require("../../config/multerConfig");
+const upload = require("../../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -17,12 +17,12 @@ router.use(protect, admin);
 router
   .route("/")
   .get(getAllProducts)
-  .post(upload.array("images", 5), createProduct);
+  .post(upload, createProduct);
 
 router
   .route("/:id")
   .get(getProductById)
-  .put(upload.array("images", 5), updateProduct)
+  .put(upload, updateProduct)
   .delete(deleteProduct);
 
 module.exports = router;
