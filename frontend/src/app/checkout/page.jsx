@@ -97,7 +97,7 @@ export default function CheckoutPage() {
         country: formData.country || 'Egypt',
         postal_code: formData.postal_code || '00000',
         notes: formData.notes,
-        payment_method: formData.payment_method,
+        payment_method: formData.payment_method || 'cash_on_delivery',
         total_amount: parseFloat(orderTotal).toFixed(2),
         items: itemsPayload,
       };
@@ -404,6 +404,7 @@ export default function CheckoutPage() {
                 Payment Method *
               </label>
               <div className="space-y-3">
+{/*                 
                 <label className="flex items-center p-3 border dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <input
                     type="radio"
@@ -417,9 +418,9 @@ export default function CheckoutPage() {
                     <div className="font-medium dark:text-white">Credit/Debit Card</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Pay securely with your credit or debit card</div>
                   </div>
-                </label>
+                </label> */}
                 
-                <label className="flex items-center p-3 border dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                {/* <label className="flex items-center p-3 border dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <input
                     type="radio"
                     name="payment_method"
@@ -432,7 +433,7 @@ export default function CheckoutPage() {
                     <div className="font-medium dark:text-white">Vodafone Cash</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Pay using your Vodafone Cash mobile wallet</div>
                   </div>
-                </label>
+                </label> */}
                 
                 <label className="flex items-center p-3 border dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <input
