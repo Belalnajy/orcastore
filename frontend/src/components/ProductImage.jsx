@@ -36,7 +36,9 @@ export default function ProductImage({ src, alt, className = "" }) {
   }
 
   // Check if className contains object-fit or height/width
-  const hasObjectFit = /object-(cover|contain|fill|none|scale-down)/.test(className);
+  const hasObjectFit = /object-(cover|contain|fill|none|scale-down)/.test(
+    className
+  );
   const hasHeight = /h-\[?\d/.test(className);
   const hasWidth = /w-\[?\d/.test(className);
 
@@ -44,9 +46,9 @@ export default function ProductImage({ src, alt, className = "" }) {
     <Image
       src={processedSrc}
       alt={alt}
-      className={
-        `${hasObjectFit ? '' : 'object-cover'} ${hasHeight ? '' : 'h-[500px]'} ${hasWidth ? '' : 'w-[500px]'} ${className}`.trim()
-      }
+      className={`${hasObjectFit ? "" : "object-cover"} ${hasHeight
+        ? ""
+        : "h-[500px]"} ${hasWidth ? "" : "w-[500px]"} ${className}`.trim()}
       fill
       onError={() => setImageError(true)}
     />
