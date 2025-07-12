@@ -104,6 +104,9 @@ const createProduct = asyncHandler(async (req, res) => {
     throw new Error("Category not found");
   }
 
+  // Get image URLs from Cloudinary
+  const images = req.files.map((file) => file.path);
+
   const product = await prisma.product.create({
     data: {
       name,
@@ -113,7 +116,7 @@ const createProduct = asyncHandler(async (req, res) => {
       stock: parseInt(stock, 10),
       categoryId: categoryId,
       isActive: isActive === "true",
-      images: req.files.map(f => f.path),
+      images,
       features:
         typeof features === "string"
           ? features.split(",").map((f) => f.trim())
