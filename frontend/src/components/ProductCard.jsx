@@ -58,10 +58,10 @@ export default function ProductCard({ product, onQuickView }) {
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="group bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      className="group h-[500px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}>
-      <div className="relative h-64 overflow-hidden bg-gray-100 dark:bg-gray-700">
+      <div className="relative h-96   overflow-hidden bg-gray-100 dark:bg-gray-700">
         {imageError
           ? <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-600">
               <ImageIcon
@@ -73,13 +73,13 @@ export default function ProductCard({ product, onQuickView }) {
               </span>
             </div>
           : <ProductImage
-              src={getImageUrl(product.images[1])}
+              src={getImageUrl(product.images[0])}
               alt={product.name}
-              className={`object-cover transition-transform duration-500 ${isHovered
+              className={`object-contain transition-transform duration-500 bg-[#cfd4d5] ${isHovered
                 ? "scale-110"
                 : "scale-100"}`}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
               onError={() => setImageError(true)}
             />}
         <div
