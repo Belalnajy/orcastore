@@ -20,6 +20,8 @@ import { Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 // Get product by slug using the API client
 async function getProductBySlug(slug) {
@@ -42,6 +44,8 @@ export default function ProductPage({ params }) {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [index, setIndex] = useState(0);
 
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -142,6 +146,9 @@ export default function ProductPage({ params }) {
     );
   }
 
+  const getImageUrl = src =>
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}${src}`;
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -157,7 +164,7 @@ export default function ProductPage({ params }) {
       {/* Product Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         {/* Product Image */}
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden relative h-[500px]">
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden relative h-[500px] md:h-[700px] w-auto  ">
           {Array.isArray(product.images) && product.images.length > 0
             ? <Swiper
                 modules={[Pagination, Navigation]}
@@ -171,11 +178,15 @@ export default function ProductPage({ params }) {
                 {product.images.map((img, idx) =>
                   <SwiperSlide
                     key={idx}
-                    className="flex justify-center items-center">
+                    className="flex justify-center items-center cursor-pointer"
+                    onClick={() => {
+                      setIndex(idx);
+                      setOpen(true);
+                    }}>
                     <ProductImage
                       src={img}
                       alt={product.name + " image " + (idx + 1)}
-                      className="h-[480px] w-full object-contain rounded-lg bg-white dark:bg-gray-900"
+                      className="   rounded-lg bg-white dark:bg-gray-900"
                     />
                   </SwiperSlide>
                 )}
@@ -199,7 +210,7 @@ export default function ProductPage({ params }) {
 
         {/* Product Info */}
         <div>
-          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
             {product.name}
           </h1>
 
@@ -209,7 +220,7 @@ export default function ProductPage({ params }) {
               className="text-gray-500 dark:text-gray-400 hover:text-secondary">
               {product.category_name}
             </Link>
-            {/* <span className="mx-2 text-gray-500 dark:text-gray-400">•</span>
+            <span className="mx-2 text-gray-500 dark:text-gray-400">•</span>
             <div className="flex items-center">
               {[...Array(5)].map((_, i) =>
                 <Star
@@ -225,7 +236,7 @@ export default function ProductPage({ params }) {
               <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">
                 ({product.reviews} reviews)
               </span>
-            </div> */}
+            </div>
           </div>
 
           <div className="text-2xl font-bold text-secondary mb-6">
@@ -235,19 +246,24 @@ export default function ProductPage({ params }) {
             EGP
           </div>
 
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            {product.description}
+          <p className="text-gray-700 text-lg dark:text-gray-300 mb-6">
+            {product.description} Crafted from the finest cotton for superior
+            comfort and a stylish look. The perfect design for any occasion.
           </p>
 
           {/* Features */}
-          {/* <div className="mb-6">
+          <div className="mb-6 ">
             <h3 className="font-semibold mb-2 dark:text-white">Features:</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              {product.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
+            <ul
+              className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300   "
+              style={{ listStyleType: "none" }}>
+              {product.features.map((feature, index) =>
+                <li key={index}>
+                  {feature}
+                </li>
+              )}
             </ul>
-          </div> */}
+          </div>
 
           {/* Size Selection */}
           {product.sizes &&
@@ -293,7 +309,7 @@ export default function ProductPage({ params }) {
           {/* Quantity */}
           <div className="mb-6">
             <h3 className="font-semibold mb-2 dark:text-white">Quantity:</h3>
-            <div className="flex items-center">
+            <div className="flex items-center ">
               <button
                 className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-l-md p-2 transition-colors"
                 onClick={decreaseQuantity}
@@ -316,9 +332,9 @@ export default function ProductPage({ params }) {
           </div>
 
           {/* Add to Cart */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col md:flex-col lg:flex-col xl:flex-row gap-1 mb-6">
             <button
-              className="flex-1 bg-secondary text-white py-3 px-6 rounded-md font-semibold flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors"
+              className="flex-1 bg-secondary text-white py-3 px-6 rounded-md font-semibold md:text-md flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors"
               onClick={handleAddToCart}
               disabled={product.stock === 0}>
               <ShoppingCart size={20} />
@@ -362,6 +378,13 @@ export default function ProductPage({ params }) {
           </div>
         </div>
       </div>
+
+      <Lightbox
+        open={open}
+        close={() => setOpen(false)}
+        slides={product.images.map(img => ({ src: getImageUrl(img) }))}
+        index={index}
+      />
 
       {/* Related Products */}
       {relatedProducts.length > 0 &&
