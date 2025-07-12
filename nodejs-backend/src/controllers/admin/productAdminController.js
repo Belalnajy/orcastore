@@ -104,33 +104,37 @@ const createProduct = asyncHandler(async (req, res) => {
     throw new Error("Category not found");
   }
 
-  // Get image URLs from Cloudinary
-  const images = req.files.map((file) => file.path);
+  const data = {
+    name,
+    slug,
+    description,
+    price: parseFloat(price),
+    stock: parseInt(stock, 10),
+    categoryId: categoryId,
+    isActive: isActive === "true",
+    features:
+      typeof features === "string"
+        ? features.split(",").map((f) => f.trim())
+        : features || [],
+    sizes:
+      typeof sizes === "string"
+        ? sizes.split(",").map((s) => s.trim())
+        : sizes || [],
+    colors:
+      typeof colors === "string"
+        ? colors.split(",").map((c) => c.trim())
+        : colors || [],
+  };
 
-  const product = await prisma.product.create({
-    data: {
-      name,
-      slug,
-      description,
-      price: parseFloat(price),
-      stock: parseInt(stock, 10),
-      categoryId: categoryId,
-      isActive: isActive === "true",
-      images,
-      features:
-        typeof features === "string"
-          ? features.split(",").map((f) => f.trim())
-          : features || [],
-      sizes:
-        typeof sizes === "string"
-          ? sizes.split(",").map((s) => s.trim())
-          : sizes || [],
-      colors:
-        typeof colors === "string"
-          ? colors.split(",").map((c) => c.trim())
-          : colors || []
-    }
-  });
+  const images = req.files
+    ? req.files.filter((file) => file && file.path).map((file) => file.path)
+    : [];
+
+  if (images.length > 0) {
+    data.images = images;
+  }
+
+  const product = await prisma.product.create({ data });
 
   res.status(201).json(product);
 });
@@ -162,20 +166,44 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
-  let imagesPaths = product.images || [];
+  const data = {
+    name,
+    slug,
+    description,
+    price: parseFloat(price),
+    stock: parseInt(stock, 10),
+    categoryId: categoryId,
+    isActive: isActive === "true",
+    features:
+      typeof features === "string"
+        ? features.split(",").map((f) => f.trim())
+        : features || [],
+    sizes:
+      typeof sizes === "string"
+        ? sizes.split(",").map((s) => s.trim())
+        : sizes || [],
+    colors:
+      typeof colors === "string"
+        ? colors.split(",").map((c) => c.trim())
+        : colors || [],
+  };
 
-  // If new images are uploaded, delete the old ones from Cloudinary
+  // If new images are uploaded, delete old ones and add new paths
   if (req.files && req.files.length > 0) {
-    if (product.images && product.images.length > 0) {
-      const deletePromises = product.images.map(url => {
-        // Extract public_id from the URL. Example: 'orcastore/filename'
-        const publicId = url.split('/').slice(-2).join('/').split('.')[0];
-        return cloudinary.uploader.destroy(publicId);
-      });
-      await Promise.all(deletePromises);
+    const newImages = req.files.filter(f => f && f.path).map(f => f.path);
+
+    if (newImages.length > 0) {
+      // Delete old images from Cloudinary if they exist
+      if (product.images && product.images.length > 0) {
+        const deletePromises = product.images.map(url => {
+          const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+          return cloudinary.uploader.destroy(publicId);
+        });
+        await Promise.all(deletePromises);
+      }
+      // Add new images to the data object
+      data.images = newImages;
     }
-    // Set the new image paths
-    imagesPaths = req.files.map(f => f.path);
   }
 
   const category = await prisma.category.findUnique({
@@ -189,28 +217,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   const updatedProduct = await prisma.product.update({
     where: { id },
-    data: {
-      name,
-      slug,
-      description,
-      price: parseFloat(price),
-      stock: parseInt(stock, 10),
-      categoryId: categoryId,
-      isActive: isActive === "true",
-      images: imagesPaths,
-      features:
-        typeof features === "string"
-          ? features.split(",").map((f) => f.trim())
-          : features || [],
-      sizes:
-        typeof sizes === "string"
-          ? sizes.split(",").map((s) => s.trim())
-          : sizes || [],
-      colors:
-        typeof colors === "string"
-          ? colors.split(",").map((c) => c.trim())
-          : colors || []
-    }
+    data,
   });
 
   res.json(updatedProduct);
