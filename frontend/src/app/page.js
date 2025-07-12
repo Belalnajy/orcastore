@@ -309,7 +309,7 @@ export default function Home() {
                       <Link
                         href={`/products/${product.slug}`}
                         className="block relative">
-                        <div className="relative h-60 overflow-hidden bg-gray-100 dark:bg-gray-600">
+                        <div className="relative h-[500px] overflow-hidden bg-gray-100 dark:bg-gray-600">
                           <ProductImage
                             src={getImageUrl(product.images[1])}
                             alt={product.name}
@@ -378,7 +378,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/products?sort=popular"
-                  className="text-secondary hover:text-secondary/80 font-medium flex items-center transition-colors">
+                  className="text-secondary  hover:text-secondary/80 font-medium flex items-center   transition-colors ">
                   View All
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -399,11 +399,11 @@ export default function Home() {
                         <div className="absolute top-2 right-2 z-10 bg-accent text-white text-xs px-2 py-1 rounded-md">
                           Best Seller
                         </div>
-                        <div className="relative h-60 overflow-hidden">
+                        <div className="relative h-96 overflow-hidden">
                           <ProductImage
                             src={getImageUrl(product.images[1])}
                             alt={product.name}
-                            className="group-hover:scale-105 transition-transform duration-500"
+                            className="group-hover:scale-105 transition-transform duration-500 "
                           />
                           <QuickShop
                             product={product}
