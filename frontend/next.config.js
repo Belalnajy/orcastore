@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', '127.0.0.1', 'ui-avatars.com', 'source.unsplash.com', 'images.unsplash.com'],
+    domains: ['localhost', '127.0.0.1', 'ui-avatars.com', 'source.unsplash.com', 'images.unsplash.com', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'http',
