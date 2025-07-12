@@ -163,15 +163,18 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   let imagesPaths = product.images || [];
+
+  // If new images are uploaded, delete the old ones from Cloudinary
   if (req.files && req.files.length > 0) {
-    // Delete old images if new ones are uploaded
-    if (Array.isArray(product.images)) {
-      product.images.forEach(imgPath => {
-        if (fs.existsSync(imgPath)) {
-          fs.unlinkSync(imgPath);
-        }
+    if (product.images && product.images.length > 0) {
+      const deletePromises = product.images.map(url => {
+        // Extract public_id from the URL. Example: 'orcastore/filename'
+        const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+        return cloudinary.uploader.destroy(publicId);
       });
+      await Promise.all(deletePromises);
     }
+    // Set the new image paths
     imagesPaths = req.files.map(f => f.path);
   }
 
@@ -228,13 +231,14 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
-  // Delete all product images
-  if (Array.isArray(product.images)) {
-    product.images.forEach(imgPath => {
-      if (fs.existsSync(imgPath)) {
-        fs.unlinkSync(imgPath);
-      }
+  // Delete all product images from Cloudinary
+  if (product.images && product.images.length > 0) {
+    const deletePromises = product.images.map(url => {
+      // Extract public_id from the URL. Example: 'orcastore/filename'
+      const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+      return cloudinary.uploader.destroy(publicId);
     });
+    await Promise.all(deletePromises);
   }
 
   await prisma.product.delete({
