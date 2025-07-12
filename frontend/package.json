@@ -25,7 +25,8 @@
     "react-hot-toast": "^2.5.2",
     "react-i18next": "^15.5.1",
     "swiper": "^11.2.10",
-    "swr": "^2.3.3"
+    "swr": "^2.3.3",
+    "yet-another-react-lightbox": "^3.24.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
