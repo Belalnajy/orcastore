@@ -1,126 +1,117 @@
 # Premium Clothing Brand E-commerce Website
 
-A modern, responsive e-commerce website built with Next.js and Django, featuring a full shopping experience with product browsing, cart management, wishlist, and secure payment processing.
+A modern, responsive e-commerce website built with a powerful MERN-stack (MongoDB, Express.js, React/Next.js, Node.js). It features a full shopping experience, from browsing products to secure checkout, along with a comprehensive admin dashboard for managing the store.
 
 ## Tech Stack
 
 ### Frontend
-- Next.js 14
-- TailwindCSS
-- React Context API
-- Lucide Icons
-- Framer Motion
-- React Hot Toast
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI/Animation**: [Framer Motion](https://www.framer.com/motion/), [Keen Slider](https://keen-slider.io/), [Lucide Icons](https://lucide.dev/)
+- **State Management & Data Fetching**: [SWR](https://swr.vercel.app/)
+- **Internationalization (i18n)**: [i18next](https://www.i18next.com/)
+- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
+- **Utilities**: [js-cookie](https://github.com/js-cookie/js-cookie), [jwt-decode](https://github.com/auth0/jwt-decode)
 
 ### Backend
-- Django 5.2
-- Django REST Framework
-- SQLite
-- Paymob Payment Gateway
-- JWT Authentication
+- **Framework**: [Node.js](https://nodejs.org/) with [Express.js](https://expressjs.com/)
+- **Database/ORM**: [MongoDB](https://www.mongodb.com/) with [Prisma](https://www.prisma.io/)
+- **Authentication**: [JSON Web Tokens (JWT)](https://jwt.io/), [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Image Management**: [Cloudinary](https://cloudinary.com/) for cloud-based image storage
+- **File Uploads**: [Multer](https://github.com/expressjs/multer)
+- **API Client**: [Axios](https://axios-http.com/)
 
 ## Features
 
-### Frontend Features
-- Fully responsive design with dark/light mode support
-- Modern and clean UI/UX
-- Product catalog with categories
-- Shopping cart with quantity management
-- Wishlist functionality
-- Product quick view
-- Product detail pages
-- Search and filtering capabilities
-- Checkout process
-- Payment integration
+### Customer-Facing Features
+- **Fully Responsive Design**: Adapts beautifully to all screen sizes.
+- **Product Catalog**: Browse products with categories, search, and filtering.
+- **Shopping Cart & Wishlist**: Easily add, manage, and save items.
+- **Internationalization**: Supports multiple languages.
+- **Product Details**: View detailed product information and image galleries.
+- **User Authentication**: Secure sign-up and login.
 
-### Backend Features
-- RESTful API endpoints
-- JWT authentication
-- Product management
-- Cart operations
-- Wishlist management
-- Order processing
-- Payment integration with Paymob
-- Secure API endpoints
-- Documentation via DRF API docs
+### Admin & Backend Features
+- **RESTful API**: Well-structured API for all frontend operations.
+- **Product Management**: Admins can create, update, and delete products.
+- **Order Management**: (Coming Soon) Track and manage customer orders.
+- **Image Uploads**: Seamless image uploads to Cloudinary.
+- **Secure Endpoints**: JWT-based authentication to protect routes.
 
 ## Project Structure
 
-### Frontend (`frontend/`)
-- `src/`
-  - `app/` - Next.js pages and routes
-  - `components/` - Reusable React components
-  - `contexts/` - React Context providers
-  - `services/` - API client and utilities
-  - `utils/` - Helper functions and configurations
-
-### Backend (`backend/`)
-- `store/` - Main Django app
-  - `models.py` - Database models
-  - `serializers.py` - API serializers
-  - `views.py` - API views
-  - `urls.py` - URL routing
-- `ecommerce_project/` - Project configuration
-  - `settings.py` - Django settings
-  - `urls.py` - Root URL configuration
+```
+/brand-website
+├── /frontend/         # Next.js application
+│   ├── /src/app
+│   ├── /public
+│   └── package.json
+├── /nodejs-backend/   # Express.js application
+│   ├── /src
+│   │   ├── /config
+│   │   ├── /controllers
+│   │   ├── /models
+│   │   ├── /routes
+│   │   └── server.js
+│   └── package.json
+├── vercel.json        # Vercel deployment configuration
+└── README.md
+```
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (for frontend)
-- Python 3.8+ (for backend)
-- SQLite (for database)
-- Paymob API credentials (for payment processing)
+- [Node.js](https://nodejs.org/en/download/) (v18 or later recommended)
+- [MongoDB](https://www.mongodb.com/try/download/community) account and connection string.
+- [Cloudinary](https://cloudinary.com/users/register/free) account for API credentials.
 
-### Installation
+### Installation & Setup
 
-1. Clone the repository
-2. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd brand-website
+    ```
 
-3. Install backend dependencies:
-```bash
-cd backend
-pip install -r requirements.txt
-```
+2.  **Install Frontend Dependencies:**
+    ```bash
+    cd frontend
+    npm install
+    ```
 
-4. Configure environment variables:
-- Add Paymob API credentials to backend settings
-- Configure database settings if needed
+3.  **Install Backend Dependencies:**
+    ```bash
+    cd ../nodejs-backend
+    npm install
+    ```
+
+4.  **Configure Backend Environment Variables:**
+    - Create a `.env` file in the `nodejs-backend` directory.
+    - Add the following variables:
+      ```
+      DATABASE_URL="your_mongodb_connection_string"
+      JWT_SECRET="your_jwt_secret_key"
+      CLOUDINARY_CLOUD_NAME="your_cloudinary_name"
+      CLOUDINARY_API_KEY="your_cloudinary_api_key"
+      CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
+      ```
 
 ### Running the Application
 
-1. Start the backend server:
-```bash
-cd backend
-python manage.py runserver
-```
+1.  **Start the Backend Server:**
+    ```bash
+    cd nodejs-backend
+    npm run dev
+    ```
+    The backend will be running on `http://localhost:5000` (or your configured port).
 
-2. Start the frontend development server:
-```bash
-cd frontend
-npm run dev
-```
+2.  **Start the Frontend Development Server:**
+    ```bash
+    cd ../frontend
+    npm run dev
+    ```
+    The frontend will be available at `http://localhost:3000`.
 
-## Payment Integration
-The website uses Paymob payment gateway with:
-- Card payments via iframe integration
-- Live payment simulation
-- Secure transaction handling
-- Order confirmation system
+## Deployment
 
-## Security Features
-- JWT authentication for API endpoints
-- CORS configuration for frontend-backend communication
-- Secure cookie handling
-- Input validation and sanitization
-- Rate limiting for API endpoints
-
-## Contributing
-Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is configured for easy deployment on [Vercel](https://vercel.com/). The `vercel.json` file handles the monorepo setup, directing API traffic to the Node.js backend and serving the Next.js frontend.
