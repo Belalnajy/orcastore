@@ -14,8 +14,27 @@ import Link from "next/link";
 
 // Fetch dashboard stats from backend API
 async function getDashboardStats() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/admin/dashboard/stats`);
-  if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+  const token = localStorage.getItem("auth_token");
+  if (!token) {
+    throw new Error("Authentication token not found. Please log in again.");
+  }
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:8000/api"}/admin/dashboard/stats`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error("Session expired. Please log in again.");
+    }
+    throw new Error("Failed to fetch dashboard stats");
+  }
   return await res.json();
 }
 

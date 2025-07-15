@@ -1,4 +1,4 @@
-const prisma = require('../../config/prisma');
+const prisma = require("../../config/prisma");
 
 /**
  * GET /api/admin/dashboard/stats
@@ -9,7 +9,7 @@ const getDashboardStats = async (req, res) => {
     // Total sales (sum of all completed/paid orders)
     const totalSales = await prisma.order.aggregate({
       _sum: { totalAmount: true },
-      where: { status: { in: ['PAID', 'COMPLETED'] } }
+      where: { status: { in: ["PAID", "COMPLETED"] } }
     });
     // Total orders
     const totalOrders = await prisma.order.count();
@@ -19,7 +19,7 @@ const getDashboardStats = async (req, res) => {
     const totalProducts = await prisma.product.count();
     // Recent 5 orders
     const recentOrders = await prisma.order.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 5,
       include: {
         user: { select: { name: true } }
@@ -27,23 +27,28 @@ const getDashboardStats = async (req, res) => {
     });
     // Top 3 selling products (by quantity)
     const topProducts = await prisma.orderItem.groupBy({
-      by: ['productId'],
+      by: ["productId"],
       _sum: { quantity: true },
-      orderBy: { _sum: { quantity: 'desc' } },
+      orderBy: { _sum: { quantity: "desc" } },
       take: 3
     });
-    const topProductDetails = await Promise.all(
-      topProducts.map(async (item) => {
-        const product = await prisma.product.findUnique({ where: { id: item.productId } });
-        return {
-          id: product.id,
-          name: product.name,
-          sales: item._sum.quantity,
-          revenue: product.price * item._sum.quantity,
-          stock: product.stock
-        };
-      })
-    );
+    const topProductDetails = (
+      await Promise.all(
+        topProducts.map(async (item) => {
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId }
+          });
+          if (!product) return null; // Gracefully handle if product is not found
+          return {
+            id: product.id,
+            name: product.name,
+            sales: item._sum.quantity,
+            revenue: product.price * item._sum.quantity,
+            stock: product.stock
+          };
+        })
+      )
+    ).filter(Boolean); // Filter out any null results
     // Sales by month (last 6 months)
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, i) => {
@@ -57,12 +62,12 @@ const getDashboardStats = async (req, res) => {
         const orders = await prisma.order.findMany({
           where: {
             createdAt: { gte: firstDay, lte: lastDay },
-            status: { in: ['PAID', 'COMPLETED'] }
+            status: { in: ["PAID", "COMPLETED"] }
           }
         });
         const sales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
         return {
-          month: firstDay.toLocaleString('default', { month: 'short' }),
+          month: firstDay.toLocaleString("default", { month: "short" }),
           sales
         };
       })
@@ -72,9 +77,9 @@ const getDashboardStats = async (req, res) => {
       totalOrders,
       totalCustomers,
       totalProducts,
-      recentOrders: recentOrders.map(o => ({
+      recentOrders: recentOrders.map((o) => ({
         id: o.id,
-        customer: o.user?.name || 'Unknown',
+        customer: o.user?.name || "Unknown",
         date: o.createdAt.toISOString().slice(0, 10),
         amount: o.totalAmount,
         status: o.status.toLowerCase()
@@ -83,8 +88,13 @@ const getDashboardStats = async (req, res) => {
       salesByMonth
     });
   } catch (error) {
-    console.error('Dashboard stats error:', error);
-    res.status(500).json({ message: 'Failed to fetch dashboard stats', error: error.message });
+    console.error("Dashboard stats error:", error);
+    res
+      .status(500)
+      .json({
+        message: "Failed to fetch dashboard stats",
+        error: error.message
+      });
   }
 };
 
