@@ -1,82 +1,153 @@
-const prisma = require('../../config/prisma');
+const prisma = require("../../config/prisma");
+const cloudinary = require("../../config/cloudinaryConfig");
 
-// --- Get all categories (Admin) ---
-const getAllCategories = async (req, res) => {
-  try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
-    });
-    res.status(200).json(categories);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error: error.message });
-  }
+// Helper to extract public_id from Cloudinary URL
+const getPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  const parts = url.split("/");
+  const publicIdWithExtension = parts.slice(-2).join("/");
+  return publicIdWithExtension.split(".").slice(0, -1).join(".");
 };
 
-// --- Create a new category ---
+// @desc    Create a new category
+// @route   POST /api/admin/categories
+// @access  Private/Admin
 const createCategory = async (req, res) => {
   const { name, slug, description } = req.body;
-  const image = req.file ? req.file.path : null;
-
-  if (!name || !slug) {
-    return res.status(400).json({ message: 'Name and slug are required.' });
-  }
 
   try {
-    const newCategory = await prisma.category.create({
-      data: { 
-        name,
-        slug,
-        description,
-        image 
-      },
-    });
-    res.status(201).json(newCategory);
-  } catch (error) {
-    if (error.code === 'P2002') { // Unique constraint failed
-      return res.status(400).json({ message: 'A category with this slug already exists.' });
+    const data = {
+      name,
+      slug,
+      description
+    };
+
+    if (req.file) {
+      data.image = req.file.path; // Add image URL from Cloudinary
     }
-    console.error('Error creating category:', error);
-    res.status(500).json({ message: 'Failed to create category', error: error.message });
+
+    const category = await prisma.category.create({ data });
+    res.status(201).json(category);
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res
+      .status(400)
+      .json({ message: "Error creating category", error: error.message });
   }
 };
 
-// --- Update a category ---
+// @desc    Update a category
+// @route   PUT /api/admin/categories/:id
+// @access  Private/Admin
 const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name, slug, description, image } = req.body;
+  const { name, slug, description } = req.body;
 
   try {
-    const updatedCategory = await prisma.category.update({
-      where: { id },
-      data: { name, slug, description, image },
+    const existingCategory = await prisma.category.findUnique({
+      where: { id }
     });
-    res.status(200).json(updatedCategory);
-  } catch (error) {
-     if (error.code === 'P2002') { // Unique constraint failed
-      return res.status(400).json({ message: 'A category with this slug already exists.' });
+
+    if (!existingCategory) {
+      return res.status(404).json({ message: "Category not found" });
     }
-    res.status(500).json({ message: 'Failed to update category', error: error.message });
+
+    const data = {
+      name,
+      slug,
+      description
+    };
+
+    if (req.file) {
+      // If a new image is uploaded, delete the old one from Cloudinary
+      if (existingCategory.image) {
+        const publicId = getPublicIdFromUrl(existingCategory.image);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
+      }
+      data.image = req.file.path; // Add the new image URL
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data
+    });
+
+    res.json(category);
+  } catch (error) {
+    console.error("Error updating category:", error);
+    res
+      .status(400)
+      .json({ message: "Error updating category", error: error.message });
   }
 };
 
-// --- Delete a category ---
+// @desc    Delete a category
+// @route   DELETE /api/admin/categories/:id
+// @access  Private/Admin
 const deleteCategory = async (req, res) => {
   const { id } = req.params;
-
   try {
-    await prisma.category.delete({ where: { id } });
-    res.status(200).json({ message: 'Category deleted successfully' });
-  } catch (error) {
-    if (error.code === 'P2003') { // Foreign key constraint failed
-      return res.status(400).json({ message: 'Cannot delete category. It is associated with existing products.' });
+    const category = await prisma.category.findUnique({ where: { id } });
+
+    // If category has an image, delete it from Cloudinary first
+    if (category && category.image) {
+      const publicId = getPublicIdFromUrl(category.image);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
     }
-    res.status(500).json({ message: 'Failed to delete category', error: error.message });
+
+    await prisma.category.delete({ where: { id } });
+    res.json({ message: "Category removed" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res
+      .status(404)
+      .json({ message: "Category not found", error: error.message });
+  }
+};
+
+// @desc    Get all categories
+// @route   GET /api/admin/categories
+// @access  Private/Admin
+const getAllCategories = async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany();
+    res.json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching categories", error: error.message });
+  }
+};
+
+// @desc    Get category by ID
+// @route   GET /api/admin/categories/:id
+// @access  Private/Admin
+const getCategoryById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const category = await prisma.category.findUnique({ where: { id } });
+    if (category) {
+      res.json(category);
+    } else {
+      res.status(404).json({ message: "Category not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching category:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching category", error: error.message });
   }
 };
 
 module.exports = {
-  getAllCategories,
   createCategory,
   updateCategory,
   deleteCategory,
+  getAllCategories,
+  getCategoryById
 };

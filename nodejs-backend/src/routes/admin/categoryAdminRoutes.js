@@ -1,24 +1,28 @@
 const express = require('express');
 const {
-  getAllCategories,
   createCategory,
+  getAllCategories,
+  getCategoryById,
   updateCategory,
   deleteCategory,
 } = require('../../controllers/admin/categoryAdminController');
 const { protect, admin } = require('../../middleware/authMiddleware');
-const upload = require('../../middleware/uploadMiddleware');
+const uploadSingleImage = require('../../middleware/uploadSingleImageMiddleware');
 
 const router = express.Router();
 
-// All routes in this file are protected and for admins only
+// All routes are protected and for admins only
 router.use(protect, admin);
 
-router.route('/')
-  .get(getAllCategories)
-  .post(upload, createCategory);
+router
+  .route('/')
+  .post(uploadSingleImage, createCategory)
+  .get(getAllCategories);
 
-router.route('/:id')
-  .put(updateCategory)
+router
+  .route('/:id')
+  .get(getCategoryById)
+  .put(uploadSingleImage, updateCategory)
   .delete(deleteCategory);
 
 module.exports = router;
