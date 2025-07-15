@@ -231,8 +231,8 @@ export default function CategoriesPage() {
       
       if (selectedCategory) {
         // Update existing category
-        // Use the slug for the API request, as that's what the backend expects
-        await categoryAPI.updateCategory(selectedCategory.slug, data);
+        // Use the ID for the API request, as the backend expects it
+        await categoryAPI.updateCategory(selectedCategory.id, data);
         successMessage = `Category "${formData.name}" updated successfully`;
       } else {
         // Create new category
@@ -277,7 +277,7 @@ export default function CategoriesPage() {
       }
       
       // Delete category via API - the API client will handle token authentication
-      await categoryAPI.deleteCategory(selectedCategory.id, selectedCategory.slug);
+      await categoryAPI.deleteCategory(selectedCategory.id);
       
       // Refresh categories list
       const categoriesData = await getCategories(searchTerm);
