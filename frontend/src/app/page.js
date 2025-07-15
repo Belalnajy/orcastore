@@ -8,7 +8,18 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { productAPI, categoryAPI, getImageUrl } from "@/services/apiClient";
 import ProductImage from "@/components/ProductImage";
-import { ShoppingCart, ArrowRight, Star, ChevronRight } from "lucide-react";
+import {
+  ShoppingCart,
+  ArrowRight,
+  Star,
+  ChevronRight,
+  Facebook,
+  Instagram,
+  Truck,
+  Gem,
+  ShieldCheck,
+  Undo2
+} from "lucide-react";
 import QuickShop from "@/components/QuickShop";
 import ProductQuickView from "@/components/ProductQuickView";
 
@@ -82,36 +93,36 @@ export default function Home() {
   ];
 
   // Featured Brands data
-  const brands = [
+  const collections = [
     {
       id: 1,
-      name: "Elegance",
-      logo: `https://ui-avatars.com/api/?name=Elegance&size=200&background=random`,
-      description: "Luxury fashion for the modern woman"
+      name: "Tidal Wave Apparel",
+      logo: `https://ui-avatars.com/api/?name=Tidal+Wave&size=200&background=0D8ABC&color=fff`,
+      description: "Flow with the latest trends"
     },
     {
       id: 2,
-      name: "Urban Style",
-      logo: `https://ui-avatars.com/api/?name=Urban+Style&size=200&background=random`,
-      description: "Street fashion with attitude"
+      name: "Deep Ocean Denim",
+      logo: `https://ui-avatars.com/api/?name=Deep+Ocean&size=200&background=005F73&color=fff`,
+      description: "Durable and timeless styles"
     },
     {
       id: 3,
-      name: "Gentleman",
-      logo: `https://ui-avatars.com/api/?name=Gentleman&size=200&background=random`,
-      description: "Classic menswear with a contemporary twist"
+      name: "Coastal Casuals",
+      logo: `https://ui-avatars.com/api/?name=Coastal+Casuals&size=200&background=94D2BD&color=000`,
+      description: "Relaxed fits for everyday comfort"
     },
     {
       id: 4,
-      name: "Active Life",
-      logo: `https://ui-avatars.com/api/?name=Active+Life&size=200&background=random`,
-      description: "Performance wear for active lifestyles"
+      name: "Nautical Knits",
+      logo: `https://ui-avatars.com/api/?name=Nautical+Knits&size=200&background=E9D8A6&color=000`,
+      description: "Cozy essentials for cooler days"
     },
     {
       id: 5,
-      name: "Kids World",
-      logo: `https://ui-avatars.com/api/?name=Kids+World&size=200&background=random`,
-      description: "Fun and practical clothing for children"
+      name: "Reef-Ready Activewear",
+      logo: `https://ui-avatars.com/api/?name=Reef+Ready&size=200&background=EE9B00&color=fff`,
+      description: "Performance gear for your adventures"
     }
   ];
 
@@ -173,7 +184,7 @@ export default function Home() {
           <section className="relative h-[80vh] min-h-[600px] overflow-hidden">
             <div className="absolute inset-0">
               <img
-                src="https://images.pexels.com/photos/26965986/pexels-photo-26965986.jpeg"
+                src="https://i.postimg.cc/W3T0T1Hc/orca-hero.jpg"
                 alt="Fashion Collection"
                 style={{ width: "100vw", height: "100vh", objectFit: "cover" }}
                 className="object-cover object-center"
@@ -226,7 +237,7 @@ export default function Home() {
                 </p>
               </motion.div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6 ">
                 {categories.map((category, index) => (
                   <motion.div
                     key={category.id}
@@ -236,14 +247,14 @@ export default function Home() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}>
                     <Link
                       href={`/products?category=${category.slug}`}
-                      className="group block relative overflow-hidden rounded-xl shadow-md h-64">
+                      className="group block relative overflow-hidden rounded-3xl shadow-md h-[400px]">
                       <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-20 transition-all duration-300 z-10"></div>
-                      <div className="absolute inset-0">
+                      <div className="absolute inset-0 ">
                         <Image
                           src={getImageUrl(category.image)}
                           alt={category.name}
                           fill
-                          className="object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                          className=" object-cover object-center w-full h-full group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -449,8 +460,8 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Featured Brands Section */}
-          <section className="py-16 bg-gray-50 dark:bg-gray-800 px-6 md:px-8 transition-colors duration-300">
+          {/* Why Shop With Us Section */}
+          <section className="py-20 bg-white dark:bg-gray-800 px-6 md:px-8">
             <div className="container mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -459,45 +470,56 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-primary dark:text-white mb-4">
-                  Featured Brands
+                  Why Shop With Us?
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                  Discover our curated selection of premium fashion brands
+                  We provide the best experience for our customers, from quality
+                  to support.
                 </p>
               </motion.div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {brands.map((brand, index) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {[
+                  {
+                    icon: <Truck className="w-10 h-10 text-accent" />,
+                    title: "Fast Shipping",
+                    description:
+                      "Get your order delivered to your doorstep in no time."
+                  },
+                  {
+                    icon: <Gem className="w-10 h-10 text-accent" />,
+                    title: "Guaranteed Quality",
+                    description:
+                      "Premium materials and craftsmanship in every product."
+                  },
+                  {
+                    icon: <ShieldCheck className="w-10 h-10 text-accent" />,
+                    title: "Secure Payment",
+                    description:
+                      "Your transactions are safe with our encrypted payment gateways."
+                  },
+                  {
+                    icon: <Undo2 className="w-10 h-10 text-accent" />,
+                    title: "Easy Returns",
+                    description:
+                      "Hassle-free returns and exchanges within 14 days."
+                  }
+                ].map((feature, index) => (
                   <motion.div
-                    key={brand.id}
+                    key={index}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm text-center hover-scale">
-                    <div className="relative w-20 h-20 mx-auto mb-4">
-                      <Image
-                        src={
-                          brand.logo ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            brand.name
-                          )}&background=random`
-                        }
-                        alt={brand.name}
-                        fill
-                        className="object-contain"
-                        onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            brand.name
-                          )}&background=random`;
-                        }}
-                      />
+                    transition={{ duration: 0.5, delay: index * 0.15 }}
+                    className="bg-gray-50 dark:bg-gray-700 p-8 rounded-xl shadow-sm text-center transition-transform duration-300 hover:-translate-y-2">
+                    <div className="flex justify-center mb-5">
+                      {feature.icon}
                     </div>
-                    <h3 className="font-medium text-primary dark:text-white mb-1">
-                      {brand.name}
+                    <h3 className="text-xl font-semibold text-primary dark:text-white mb-2">
+                      {feature.title}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">
-                      {brand.description}
+                    <p className="text-gray-500 dark:text-gray-300">
+                      {feature.description}
                     </p>
                   </motion.div>
                 ))}
@@ -651,7 +673,7 @@ export default function Home() {
           </section> */}
 
           {/* Newsletter Section */}
-          <section className="py-16 bg-secondary text-white px-6 md:px-8">
+          <section className="py-20 bg-slate-100 dark:bg-secondary px-6 md:px-8">
             <div className="container mx-auto">
               <div className="max-w-3xl mx-auto text-center">
                 <motion.div
@@ -659,26 +681,46 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}>
-                  <h2 className="text-3xl font-bold mb-4">Stay in the Loop</h2>
-                  <p className="text-lg mb-8 opacity-90">
-                    Subscribe to our newsletter for exclusive offers, new
-                    arrivals, and fashion tips.
+                  <h2 className="text-4xl font-bold mb-4 text-slate-800 dark:text-white">
+                    Follow Our Journey
+                  </h2>
+                  <p className="text-lg mb-10 text-slate-600 dark:text-white dark:opacity-90">
+                    Stay up-to-date with our latest collections and
+                    behind-the-scenes content on social media.
                   </p>
-                  <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                    <input
-                      type="email"
-                      placeholder="Your email address"
-                      className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
-                      required
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="submit"
-                      className="bg-accent hover:bg-accent/90 text-white px-6 py-3 rounded-md font-medium transition-colors">
-                      Subscribe
-                    </motion.button>
-                  </form>
+                  <div className="flex justify-center items-center space-x-8">
+                    <motion.a
+                      whileHover={{ scale: 1.1, y: -5 }}
+                      href="https://www.facebook.com/profile.php?id=61577698240978"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white dark:bg-white/10 border-2 border-slate-200 dark:border-white/20 rounded-full p-4 text-slate-600 dark:text-white hover:bg-accent hover:border-accent hover:text-white transition-all duration-300">
+                      <Facebook size={32} />
+                    </motion.a>
+                    <motion.a
+                      whileHover={{ scale: 1.1, y: -5 }}
+                      href="https://www.instagram.com/theorca.1/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white dark:bg-white/10 border-2 border-slate-200 dark:border-white/20 rounded-full p-4 text-slate-600 dark:text-white hover:bg-accent hover:border-accent hover:text-white transition-all duration-300">
+                      <Instagram size={32} />
+                    </motion.a>
+                    <motion.a
+                      whileHover={{ scale: 1.1, y: -5 }}
+                      href="https://www.tiktok.com/@o.r.c.a03"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white dark:bg-white/10 border-2 border-slate-200 dark:border-white/20 rounded-full p-4 text-slate-600 dark:text-white hover:bg-accent hover:border-accent hover:text-white transition-all duration-300">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="32"
+                        height="32"
+                        fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z" />
+                      </svg>
+                    </motion.a>
+                  </div>
                 </motion.div>
               </div>
             </div>

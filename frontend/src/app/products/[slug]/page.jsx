@@ -146,8 +146,7 @@ export default function ProductPage({ params }) {
     );
   }
 
-  const getImageUrl = src =>
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${src}`;
+  const getImageUrl = src => `${process.env.NEXT_PUBLIC_API_BASE_URL}${src}`;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -294,10 +293,10 @@ export default function ProductPage({ params }) {
                 {product.colors.map(color =>
                   <button
                     key={color}
-                    className={`w-8 h-8 rounded-full border-2 ${selectedColor ===
+                    className={`w-8 h-8 rounded-full border-2  ${selectedColor ===
                     color
                       ? "border-secondary"
-                      : "border-transparent"}`}
+                      : "border-gray-300"}`}
                     style={{ backgroundColor: color }}
                     onClick={() => setSelectedColor(color)}
                     aria-label={`Select ${color} color`}

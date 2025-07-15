@@ -104,11 +104,11 @@ export default function ContactPage() {
 
               <div className="flex items-start gap-4">
                 <div className="bg-secondary text-white p-3 rounded-full">
-                  <Phone size={20} />
+                  <whatsapp size={20} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-primary dark:text-white">
-                    Phone Number
+                    WhatsApp Number
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
                     +01091906949

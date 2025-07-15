@@ -11,21 +11,24 @@ import { motion } from "framer-motion";
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="w-full md:w-3/4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 animate-pulse">
-                <div className="w-full h-48 bg-gray-300 dark:bg-gray-700 rounded-md mb-4"></div>
-                <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded-md w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-1/2"></div>
-              </div>
-            ))}
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <div className="w-full md:w-3/4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) =>
+                <div
+                  key={i}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 animate-pulse">
+                  <div className="w-full h-48 bg-gray-300 dark:bg-gray-700 rounded-md mb-4" />
+                  <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded-md w-3/4 mb-2" />
+                  <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded-md w-1/2" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    }>
+      }>
       <ProductsContent />
     </Suspense>
   );
@@ -37,6 +40,7 @@ function ProductsContent() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [inputPriceRange, setInputPriceRange] = useState({ min: "", max: "" });
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [availability, setAvailability] = useState({
     inStock: false,
@@ -67,7 +71,8 @@ function ProductsContent() {
           let categoriesData = [];
           try {
             const catResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/categories/`
+              `${process.env.NEXT_PUBLIC_API_URL ||
+                "http://localhost:8000/api"}/categories/`
             );
             const catData = await catResponse.json();
 
@@ -92,10 +97,12 @@ function ProductsContent() {
             let apiUrl = "";
             if (categoryParam) {
               // Get products by category
-              apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/products/by_category/?category=${categoryParam}`;
+              apiUrl = `${process.env.NEXT_PUBLIC_API_URL ||
+                "http://localhost:8000/api"}/products/by_category/?category=${categoryParam}`;
             } else {
               // Get all products
-              apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/products/`;
+              apiUrl = `${process.env.NEXT_PUBLIC_API_URL ||
+                "http://localhost:8000/api"}/products/`;
             }
 
             const response = await fetch(apiUrl);
@@ -147,8 +154,8 @@ function ProductsContent() {
   };
 
   const applyPriceFilter = () => {
-    // This would normally filter products based on price range
-    console.log("Filtering by price:", priceRange);
+    setPriceRange({ ...inputPriceRange });
+    // يمكنك هنا إضافة أي منطق إضافي عند الضغط على Apply
   };
 
   const toggleMobileFilters = () => {
@@ -239,9 +246,12 @@ function ProductsContent() {
                 placeholder="Min"
                 className="w-full p-2 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 min="0"
-                value={priceRange.min}
+                value={inputPriceRange.min}
                 onChange={e =>
-                  setPriceRange({ ...priceRange, min: e.target.value })}
+                  setInputPriceRange({
+                    ...inputPriceRange,
+                    min: e.target.value
+                  })}
               />
               <span className="dark:text-gray-400">-</span>
               <input
@@ -249,9 +259,12 @@ function ProductsContent() {
                 placeholder="Max"
                 className="w-full p-2 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 min="0"
-                value={priceRange.max}
+                value={inputPriceRange.max}
                 onChange={e =>
-                  setPriceRange({ ...priceRange, max: e.target.value })}
+                  setInputPriceRange({
+                    ...inputPriceRange,
+                    max: e.target.value
+                  })}
               />
             </div>
             <button
