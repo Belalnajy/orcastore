@@ -27,7 +27,6 @@ export default function OrderDetailsPage({ params }) {
       setLoading(true);
       // Fetch order details using the order_id (UUID)
       const data = await orderAPI.getOrderByOrderId(orderId);
-      // console.log('Order details fetched successfully:', data);
       setOrder(data);
       setLoading(false);
     } catch (err) {

@@ -76,7 +76,6 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
             <div className="grid grid-cols-1 md:grid-cols-2">
               {/* Product Image */}
               <div className="relative h-72 md:h-full bg-gray-100 dark:bg-gray-800">
-                {console.log(product)}
                 <ProductImage
                   src={
                     getImageUrl(product.images[1]) ||

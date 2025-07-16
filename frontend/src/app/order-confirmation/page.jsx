@@ -19,7 +19,6 @@ function OrderConfirmationContent() {
         // 1. Try to fetch via public order_id (UUID) if present in URL
         if (orderId && orderId !== 'undefined') {
           const orderData = await orderAPI.getOrderByOrderId(orderId);
-          // console.log('Fetched order details by order_id:', orderData);
           setOrderDetails(orderData);
           // Persist internal id for any future requests
           if (orderData?.id) {
@@ -33,7 +32,6 @@ function OrderConfirmationContent() {
         const id = (rawId && rawId !== 'undefined') ? rawId : localStorage.getItem('lastOrderId');
         if (id) {
           const orderData = await orderAPI.getOrderById(id);
-          console.log('Fetched order details by id:', orderData);
           setOrderDetails(orderData);
           return;
         }

@@ -64,7 +64,6 @@ export default function CheckoutPage() {
     
     try {
       // Log cart items for debugging
-      // console.log('Cart items being submitted:', cartItems);
       
       // Ensure all product IDs are valid numbers or strings
       const validCart = cartItems.filter(item => {
@@ -102,7 +101,6 @@ export default function CheckoutPage() {
         items: itemsPayload,
       };
       
-      // console.log('Order data being sent to backend:', orderData);
       
       let orderResponse;
       if (authToken) {
@@ -120,7 +118,6 @@ export default function CheckoutPage() {
       } else {
         orderResponse = await orderAPI.createGuestOrder(orderData);
       }
-      // console.log('Order creation response:', orderResponse);
       
       // Store order ID in localStorage for reference
       if (orderResponse && orderResponse.id) {
@@ -147,7 +144,6 @@ export default function CheckoutPage() {
         payment_method: formData.payment_method
       });
       
-      // console.log('Payment response:', paymentResponse);
       
       // Clear cart after successful order creation
       clearCart();

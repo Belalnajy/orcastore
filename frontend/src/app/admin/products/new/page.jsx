@@ -145,7 +145,6 @@ export default function NewProductPage() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitting categoryId:', formData.categoryId);
     setLoading(true);
     setError('');
     

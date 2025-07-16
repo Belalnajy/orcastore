@@ -134,7 +134,6 @@ const WishlistPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            {console.log(product)}
             <Link href={`/products/${product.slug || product.id}`}>
               <div className="relative  overflow-hidden bg-gray-100 dark:bg-gray-700 h-96">
                 {imageErrors[product.id]

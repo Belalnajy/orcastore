@@ -58,7 +58,6 @@ export default function MyOrdersPage() {
           }
         }
       }
-      // console.log('Orders fetched successfully:', data);
       setOrders(data);
       setLoading(false);
     } catch (err) {

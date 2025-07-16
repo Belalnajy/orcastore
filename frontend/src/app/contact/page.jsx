@@ -40,7 +40,6 @@ export default function ContactPage() {
         "RNMa4XByB1baoD9ul" // Public key
       );
 
-      console.log("Email sent:", result.text);
       setFormStatus({
         submitted: true,
         success: true,

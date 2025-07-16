@@ -293,7 +293,6 @@ export default function OrderDetailPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-16 w-16 relative">
-                            {console.log(item.product.image)}
                             {item.product?.image ? (
                               <ProductImage
                                 src={item.product.image}

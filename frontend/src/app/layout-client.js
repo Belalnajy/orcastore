@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import { AuthProvider } from "../contexts/AuthContext";
 import { CartProvider } from "../contexts/CartContext";
 import { WishlistProvider } from "../contexts/WishlistContext";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
@@ -27,18 +27,25 @@ export default function RootLayoutClient({ children }) {
 
   return (
     <html lang="en" dir="ltr">
+      <head>
+        <link rel="icon" href="/orca-icon.png?v=1" sizes="any" />
+        <link rel="apple-touch-icon" href="/orca-icon.png?v=1" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
-              <Toaster position="top-center" toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#333',
-                  color: '#fff',
-                },
-              }} />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: "#333",
+                    color: "#fff"
+                  }
+                }}
+              />
               {!hideHeader && <Header />}
               <main className="flex-grow">{children}</main>
               <Footer />

@@ -61,10 +61,7 @@ export default function ProductPage({ params }) {
           if (productData) {
             // Use category_slug for fetching related products
             const categorySlug = productData.category_slug;
-            // console.log(
-            //   "Fetching related products for category:",
-            //   categorySlug
-            // );
+          
 
             if (categorySlug) {
               const related = await getRelatedProducts(
@@ -187,7 +184,6 @@ export default function ProductPage({ params }) {
                 slidesPerView={1}
                 className="h-full rounded-lg bg-white dark:bg-gray-900"
                 style={{ height: "100%" }}>
-                {console.log(product.images)}
                 {product.images.map((img, idx) =>
                   <SwiperSlide
                     key={idx}
