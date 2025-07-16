@@ -154,7 +154,7 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
                         <button
                           key={col}
                           onClick={() => setSelectedColor(col)}
-                          className={`w-7 h-7 rounded-full border-2 focus:outline-none ${selectedColor === col ? "border-secondary" : "border-transparent"}`}
+                          className={`w-7 h-7 rounded-full border-2 focus:outline-1 ${selectedColor === col ? "border-secondary" : "border-gray-300 dark:border-gray-700"}`}
                           style={{ backgroundColor: col }}
                           aria-label={col}
                         />
@@ -203,7 +203,7 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
                       (product.sizes?.length > 0 && !selectedSize) ||
                       (product.colors?.length > 0 && !selectedColor)
                     }
-                    className={`flex-1 py-3 px-6 rounded-md font-medium flex items-center justify-center ${product.stock >
+                    className={`py-2 gap-1 px-6 rounded-md font-medium flex items-center justify-center ${product.stock >
                       0 && !isAddingToCart
                       ? "bg-accent hover:bg-accent/90 text-white"
                       : "bg-gray-300 text-gray-600 cursor-not-allowed"}`}>
@@ -213,7 +213,7 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
 
                   <button
                     onClick={handleWishlistToggle}
-                    className={`flex-1 py-3 px-6 border rounded-md font-medium flex items-center justify-center ${inWishlist
+                    className={` py-2 px-6 gap-2 border rounded-md font-medium flex items-center justify-center ${inWishlist
                       ? "bg-red-500 text-white border-red-500 hover:bg-red-600"
                       : "border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"}`}>
                     <Heart

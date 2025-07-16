@@ -38,7 +38,7 @@ export default function SearchSuggestions({ query, onSelect }) {
   if (!show || !query || results.length === 0) return null;
 
   return (
-    <div ref={containerRef} className="absolute left-0 mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
+    <div ref={containerRef} className="absolute left-0 top-9 mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
       {loading && (
         <div className="px-4 py-2 text-gray-500 dark:text-gray-300 text-sm">Loading...</div>
       )}

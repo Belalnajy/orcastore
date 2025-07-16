@@ -146,7 +146,21 @@ export default function ProductPage({ params }) {
     );
   }
 
-  const getImageUrl = src => `${process.env.NEXT_PUBLIC_API_BASE_URL}${src}`;
+
+
+  const getImageUrl = (src) => {
+    if (!src) return "/images/product-placeholder.jpg";
+    if (typeof src !== 'string') {
+      // Assuming it's an object like { image: 'path' } or similar
+      src = src.image || '';
+    }
+    if (src.startsWith("http")) return src;
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${src}`;
+  };
+
+  const lightboxSlides = product?.images?.map((img) => ({
+    src: getImageUrl(img),
+  })) || [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -381,7 +395,7 @@ export default function ProductPage({ params }) {
       <Lightbox
         open={open}
         close={() => setOpen(false)}
-        slides={product.images.map(img => ({ src: getImageUrl(img) }))}
+        slides={lightboxSlides}
         index={index}
       />
 

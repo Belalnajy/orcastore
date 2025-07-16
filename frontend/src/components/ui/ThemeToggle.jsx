@@ -10,9 +10,12 @@ export default function ThemeToggle() {
   useEffect(() => {
     // Check if user has previously set a theme preference
     const storedTheme = localStorage.getItem("theme");
-    
-    if (storedTheme === "dark" || 
-        (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+
+    if (
+      storedTheme === "dark" ||
+      (!storedTheme &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
     } else {
@@ -37,14 +40,11 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-      aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {isDarkMode ? (
-        <Sun className="h-5 w-5 text-yellow-500" />
-      ) : (
-        <Moon className="h-5 w-5 text-gray-700" />
-      )}
+      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}>
+      {isDarkMode
+        ? <Sun className="h-5 w-5 text-yellow-500" />
+        : <Moon className="h-5 w-5 text-gray-700" />}
     </button>
   );
 }

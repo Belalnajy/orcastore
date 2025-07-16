@@ -154,7 +154,7 @@ function OrderConfirmationContent() {
 
         <div className="text-center">
           <p className="mb-4">
-            سيتم إرسال تفاصيل الطلب إلى بريدك الإلكتروني.
+           you can check your order status in the <Link href="/my-orders" className="text-blue-600 hover:underline">My Orders</Link> section.
           </p>
           <div className="flex justify-between mt-8">
             <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">

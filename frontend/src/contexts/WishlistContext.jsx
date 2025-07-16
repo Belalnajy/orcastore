@@ -11,7 +11,8 @@ export const useWishlist = () => useContext(WishlistContext);
 
 export const WishlistProvider = ({ children }) => {
   // Initialize state from localStorage (if available)
-  const [wishlistItems, setWishlistItems] = useState([]);
+  // We only store product ids in wishlist
+  const [wishlistIds, setWishlistIds] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
 
@@ -20,10 +21,10 @@ export const WishlistProvider = ({ children }) => {
     const storedWishlist = localStorage.getItem('wishlist');
     if (storedWishlist) {
       try {
-        setWishlistItems(JSON.parse(storedWishlist));
+        setWishlistIds(JSON.parse(storedWishlist));
       } catch (error) {
         console.error('Failed to parse wishlist from localStorage:', error);
-        setWishlistItems([]);
+        setWishlistIds([]);
       }
     }
     setIsLoaded(true);
@@ -32,82 +33,50 @@ export const WishlistProvider = ({ children }) => {
   // Save wishlist to localStorage whenever it changes
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+      localStorage.setItem('wishlist', JSON.stringify(wishlistIds));
     }
-  }, [wishlistItems, isLoaded]);
+  }, [wishlistIds, isLoaded]);
 
-  // Add item to wishlist - using useCallback to prevent recreation on each render
+  // Add product id to wishlist
   const addToWishlist = useCallback((product) => {
-    // Prevent multiple rapid clicks
     if (isAddingToWishlist) return;
-    
     setIsAddingToWishlist(true);
-    
-    // Check if item already exists in wishlist
-    if (wishlistItems.some(item => item.id === product.id)) {
+
+    if (wishlistIds.includes(product.id)) {
       toast.error('Product already in wishlist');
       setIsAddingToWishlist(false);
       return;
     }
-    
-    // Make sure we have all the necessary product data
-    const productToAdd = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      slug: product.slug || `product-${product.id}`, // Ensure we have a slug for routing
-      stock: product.stock || 100,
-    };
-    
-    setWishlistItems(prevItems => [...prevItems, productToAdd]);
+    setWishlistIds(prev => [...prev, product.id]);
     toast.success('Product added to wishlist');
-    
-    // Reset the adding flag after a delay
-    setTimeout(() => {
-      setIsAddingToWishlist(false);
-    }, 500);
-  }, [isAddingToWishlist, wishlistItems]);
+    setIsAddingToWishlist(false);
+  }, [wishlistIds, isAddingToWishlist]);
 
-  // Remove item from wishlist - using useCallback
+  // Remove product id from wishlist
   const removeFromWishlist = useCallback((productId) => {
-    let shouldShowToast = false;
-    
-    setWishlistItems((prevItems) => {
-      const newItems = prevItems.filter(item => item.id !== productId);
-      if (newItems.length < prevItems.length) {
-        shouldShowToast = true;
-      }
-      return newItems;
-    });
-    
-    // Show toast outside of the state update function
-    if (shouldShowToast) {
-      setTimeout(() => {
-        toast.success('Product removed from wishlist');
-      }, 0);
-    }
+    setWishlistIds(prev => prev.filter(id => id !== productId));
+    toast.success('Product removed from wishlist');
   }, []);
 
-  // Check if an item is in the wishlist - using useCallback
+  // Check if product id is in wishlist
   const isInWishlist = useCallback((productId) => {
-    return wishlistItems.some(item => item.id === productId);
-  }, [wishlistItems]);
+    return wishlistIds.includes(productId);
+  }, [wishlistIds]);
 
   // Clear the entire wishlist - using useCallback
   const clearWishlist = useCallback(() => {
-    setWishlistItems([]);
+    setWishlistIds([]);
     toast.success('Wishlist cleared');
   }, []);
 
   // Get wishlist count - using useCallback
   const getWishlistCount = useCallback(() => {
-    return wishlistItems.length;
-  }, [wishlistItems]);
+    return wishlistIds.length;
+  }, [wishlistIds]);
 
   // Context value
   const value = {
-    wishlistItems,
+    wishlistIds,
     addToWishlist,
     removeFromWishlist,
     isInWishlist,

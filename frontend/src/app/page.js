@@ -316,7 +316,7 @@ export default function Home() {
                   <SwiperSlide key={product.id}>
                     <motion.div
                       whileHover={{ y: -5 }}
-                      className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden transition-all duration-300 h-full">
+                      className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden transition-all duration-300 h-full mb-12">
                       <Link
                         href={`/products/${product.slug}`}
                         className="block relative">

@@ -89,36 +89,35 @@ export default function Header() {
 
             {/* Icons */}
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center relative">
-                <div className="w-full relative">
-                  <input 
-                    type="text" 
-                    placeholder="Search" 
-                    value={searchValue}
-                    onChange={e => {
-                      setSearchValue(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') handleSearch();
-                    }}
-                    className="py-1 px-3 pr-8 text-base border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-secondary w-40 lg:w-56"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                    onClick={handleSearch}
-                    aria-label="Search"
-                  >
-                    <Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  </button>
-                  {showSuggestions && (
-                    <SearchSuggestions query={searchValue} onSelect={handleSuggestionSelect} />
-                  )}
-                </div>
+              <div className="hidden md:flex items-center relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+                <input 
+                  type="text" 
+                  placeholder="Search" 
+                  value={searchValue}
+                  onChange={e => {
+                    setSearchValue(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleSearch();
+                  }}
+                  className="py-2 px-3 pr-8 text-base border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-secondary w-full"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={handleSearch}
+                  aria-label="Search"
+                >
+                  <Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                </button>
+                {showSuggestions && (
+                  <SearchSuggestions query={searchValue} onSelect={handleSuggestionSelect} />
+                )}
               </div>
+
               
               <ThemeToggle />
               
@@ -157,15 +156,39 @@ export default function Header() {
             className={`md:hidden  border-t border-gray-100 dark:border-gray-800 pt-3 transition-all duration-300 ease-in-out transform ${isMenuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-5 pointer-events-none h-0' } z-20`}
             style={{ minHeight: isMenuOpen ? '200px' : '0px' }}
           >
-            <div className="flex items-center relative mb-4">
+
+            
+            <div className="flex items-center relative mb-4 md:hidden">
               <input 
                 type="text" 
                 placeholder="Search" 
+                value={searchValue}
+                onChange={e => {
+                  setSearchValue(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
                 className="py-2 px-3 pr-8 text-base border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-secondary w-full"
               />
-              <Search className="absolute right-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+                onClick={handleSearch}
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
+              {showSuggestions && (
+                <SearchSuggestions query={searchValue} onSelect={handleSuggestionSelect} />
+              )}
             </div>
-            
+
+
+
             <nav className="flex flex-col space-y-3">
               <Link
                 href="/"

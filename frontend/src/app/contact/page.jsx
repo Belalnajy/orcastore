@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Mail, Clock, Send } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+
 import emailjs from "@emailjs/browser";
 
 export default function ContactPage() {
@@ -104,7 +106,7 @@ export default function ContactPage() {
 
               <div className="flex items-start gap-4">
                 <div className="bg-secondary text-white p-3 rounded-full">
-                  <whatsapp size={20} />
+                  <FaWhatsapp size={20} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-primary dark:text-white">
