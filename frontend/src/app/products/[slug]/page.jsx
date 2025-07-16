@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
+import toast from "react-hot-toast";
 import { productAPI } from "@/services/apiClient";
 import ProductImage from "@/components/ProductImage";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -49,6 +50,37 @@ export default function ProductPage({ params }) {
 
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  const handleShare = async () => {
+    if (!product) return;
+
+    const shareData = {
+      title: product.name,
+      text: `Check out this product: ${product.name}`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // Fail silently if user cancels the share dialog
+        if (err.name !== 'AbortError') {
+          console.error("Share failed:", err);
+          toast.error("Couldn't share product.");
+        }
+      }
+    } else {
+      // Fallback for desktop browsers
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+        toast.error("Failed to copy link.");
+      }
+    }
+  };
 
   // Fetch product data
   useEffect(
@@ -372,7 +404,10 @@ export default function ProductPage({ params }) {
                   : "Add to Wishlist"}
               </span>
             </button>
-            <button className="flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 rounded-md py-3 px-6 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors">
+            <button 
+              onClick={handleShare}
+              className="flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 rounded-md py-3 px-6 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors">
+
               <Share2 size={20} />
               <span className="hidden sm:inline">Share</span>
             </button>
