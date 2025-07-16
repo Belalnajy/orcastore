@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ORCA - Premium E-commerce Clothing Store
 
-## Getting Started
+A modern, full-stack e-commerce platform built for a premium clothing brand. This project showcases a complete shopping experience from product browsing to checkout, along with a comprehensive admin panel for store management.
 
-First, run the development server:
+**Live Demo:** https://orcastore.vercel.app/
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Key Features
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 🛍️ Customer-Facing Store
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Modern & Responsive Design:** A clean, intuitive, and fully responsive UI built with Tailwind CSS.
+- **Product Catalog:** Browse all products with search and filtering capabilities.
+- **Detailed Product Pages:** View product details, multiple images with a zoom/lightbox gallery, and stock status.
+- **Shopping Cart:** Add/remove items and view a summary before checkout.
+- **Wishlist:** Save favorite products for later.
+- **Share Functionality:** Easily share products with others via a native share dialog or by copying the link.
+- **User Authentication:** Secure user registration and login.
 
-## Learn More
+### ⚙️ Admin Dashboard
 
-To learn more about Next.js, take a look at the following resources:
+- **Analytics Dashboard:** An overview of sales, orders, and key metrics.
+- **Product Management:** Full CRUD (Create, Read, Update, Delete) functionality for products.
+- **Order Management:** View and manage customer orders.
+- **User Management:** View and manage registered users.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+This project is built with a modern, robust, and scalable tech stack:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Frontend:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+  - **Framework:** [Next.js](https://nextjs.org/) 14+ (with App Router)
+  - **UI Library:** [React](https://reactjs.org/)
+  - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+  - **Animations:** [Framer Motion](https://www.framer.com/motion/)
+  - **Icons:** [Lucide React](https://lucide.dev/)
+  - **Notifications:** [React Hot Toast](https://react-hot-toast.com/)
+  - **Image Carousel:** [Swiper.js](https://swiperjs.com/)
+  - **Email Service:** [Email.js](https://www.emailjs.com/)
+
+- **Backend:**
+  - **Runtime:** [Node.js](https://nodejs.org/)
+  - **Framework:** [Express.js](https://expressjs.com/)
+  - **Database:** (MongoDB)
+  - **Authentication:** JSON Web Tokens (JWT)
+
+---
+
+## 🚀 Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm / yarn / pnpm
+
+### Installation
+
+1.  **Clone the repository:**
+
+    ```sh
+    git clone https://github.com/Belalnajy/orcastore.git
+    ```
+
+2.  **Navigate to the frontend directory and install dependencies:**
+
+    ```sh
+    cd orcastore/frontend
+    npm install
+    ```
+
+3.  **Navigate to the backend directory and install dependencies:**
+
+    ```sh
+    cd ../nodejs-backend
+    npm install
+    ```
+
+4.  **Set up environment variables:**
+
+    - Create a `.env` file in the `frontend` directory and add your environment variables (e.g., `NEXT_PUBLIC_API_URL`).
+    - Create a `.env` file in the `nodejs-backend` directory and add your environment variables (e.g., `DATABASE_URL`, `JWT_SECRET`).
+
+5.  **Run the development servers:**
+    - For the frontend:
+    ```sh
+    npm run dev
+    ```
+    - For the backend:
+    ```sh
+    npm run dev
+    ```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
