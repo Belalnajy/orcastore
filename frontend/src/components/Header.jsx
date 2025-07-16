@@ -60,7 +60,7 @@ export default function Header() {
         </div>
       </div>
       
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10 transition-colors py-2">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 transition-colors py-2">
         <div className="max-w-screen-xl mx-auto px-4 py-1">
           <div className="flex items-center justify-between">
             {/* Logo */}
