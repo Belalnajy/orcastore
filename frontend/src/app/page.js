@@ -254,6 +254,7 @@ export default function Home() {
                           src={getImageUrl(category.image)}
                           alt={category.name}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className=" object-cover object-center w-full h-full group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
@@ -322,7 +323,7 @@ export default function Home() {
                         className="block relative">
                         <div className="relative h-[500px] overflow-hidden bg-gray-100 dark:bg-gray-600">
                           <ProductImage
-                            src={getImageUrl(product.images[1])}
+                            src={getImageUrl(product.images?.[0] || product.images?.[1])}
                             alt={product.name}
                             className="hover:scale-105 transition-transform duration-500"
                           />
@@ -351,15 +352,22 @@ export default function Home() {
                                 : parseFloat(product.price).toFixed(2)}{" "}
                               EGP
                             </span>
-                            {product.stock > 0 ? (
-                              <span className="text-xs px-2 py-0.5 bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-sm">
-                                In Stock
-                              </span>
-                            ) : (
-                              <span className="text-xs px-2 py-0.5 bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-sm">
-                                Out of Stock
-                              </span>
-                            )}
+                            {(() => {
+                              // Calculate total stock from sizeStock
+                              const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                                ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                                : product.stock || 0;
+                              
+                              return totalStock > 0 ? (
+                                <span className="text-xs px-2 py-0.5 bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-sm">
+                                  In Stock
+                                </span>
+                              ) : (
+                                <span className="text-xs px-2 py-0.5 bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-sm">
+                                  Out of Stock
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
                       </Link>
@@ -412,7 +420,7 @@ export default function Home() {
                         </div>
                         <div className="relative h-96 overflow-hidden">
                           <ProductImage
-                            src={getImageUrl(product.images[1])}
+                            src={getImageUrl(product.images?.[0] || product.images?.[1])}
                             alt={product.name}
                             className="group-hover:scale-105 transition-transform duration-500 "
                           />
@@ -569,6 +577,7 @@ export default function Home() {
                         }
                         alt={post.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -634,6 +643,7 @@ export default function Home() {
                           }
                           alt={testimonial.name}
                           fill
+                          sizes="48px"
                           className="object-cover"
                           onError={(e) => {
                             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(

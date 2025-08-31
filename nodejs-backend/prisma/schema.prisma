@@ -63,12 +63,12 @@ model Product {
   slug        String    @unique
   description String
   price       Float // Changed from Decimal
-  stock       Int       @default(0)
   images       String[]
   isActive    Boolean   @default(true)
   features    String[]
   sizes       String[]
   colors      String[]
+  sizeStock   Json      @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

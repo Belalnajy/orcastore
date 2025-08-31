@@ -44,7 +44,11 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
   };
 
   const incrementQuantity = () => {
-    if (quantity < product.stock) {
+    const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+      ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+      : product.stock || 0;
+    
+    if (quantity < totalStock) {
       setQuantity(quantity + 1);
     }
   };
@@ -182,11 +186,20 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
                     </div>
                     <button
                       onClick={incrementQuantity}
-                      disabled={quantity >= product.stock}
-                      className={`p-2 border border-gray-300 dark:border-gray-700 rounded-r-md ${quantity >=
-                      product.stock
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}>
+                      disabled={(() => {
+                        const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                          ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                          : product.stock || 0;
+                        return quantity >= totalStock;
+                      })()}
+                      className={`p-2 border border-gray-300 dark:border-gray-700 rounded-r-md ${(() => {
+                        const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                          ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                          : product.stock || 0;
+                        return quantity >= totalStock
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-800";
+                      })()}`}>
                       <Plus size={16} />
                     </button>
                   </div>
@@ -195,19 +208,32 @@ export default function ProductQuickView({ product, isOpen, onClose }) {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddToCart}
-                    disabled={
-                      !product.stock ||
-                      product.stock <= 0 ||
-                      isAddingToCart ||
-                      (product.sizes?.length > 0 && !selectedSize) ||
-                      (product.colors?.length > 0 && !selectedColor)
-                    }
-                    className={`py-2 gap-1 px-6 rounded-md font-medium flex items-center justify-center ${product.stock >
-                      0 && !isAddingToCart
-                      ? "bg-accent hover:bg-accent/90 text-white"
-                      : "bg-gray-300 text-gray-600 cursor-not-allowed"}`}>
+                    disabled={(() => {
+                      const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                        ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                        : product.stock || 0;
+                      
+                      return totalStock <= 0 ||
+                        isAddingToCart ||
+                        (product.sizes?.length > 0 && !selectedSize) ||
+                        (product.colors?.length > 0 && !selectedColor);
+                    })()}
+                    className={`py-2 gap-1 px-6 rounded-md font-medium flex items-center justify-center ${(() => {
+                      const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                        ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                        : product.stock || 0;
+                      
+                      return totalStock > 0 && !isAddingToCart
+                        ? "bg-accent hover:bg-accent/90 text-white"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed";
+                    })()}`}>
                     <ShoppingCart size={18} className="ml-2" />
-                    {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                    {(() => {
+                      const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                        ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                        : product.stock || 0;
+                      return totalStock > 0 ? "Add to Cart" : "Out of Stock";
+                    })()}
                   </button>
 
                   <button

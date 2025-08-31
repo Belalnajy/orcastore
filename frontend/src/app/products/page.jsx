@@ -336,8 +336,13 @@ function ProductsContent() {
             const filteredProducts = products.filter(product => {
               const price = parseFloat(product.price);
               if (price < min || price > max) return false;
-              if (availability.inStock && product.stock <= 0) return false;
-              if (availability.outOfStock && product.stock > 0) return false;
+              // Calculate total stock from sizeStock
+              const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                : product.stock || 0;
+              
+              if (availability.inStock && totalStock <= 0) return false;
+              if (availability.outOfStock && totalStock > 0) return false;
               return true;
             });
 
@@ -364,6 +369,7 @@ function ProductsContent() {
                           is_active: product.is_active,
                           images: product.images,
                           stock: product.stock,
+                          sizeStock: product.sizeStock,
                           category_name: product.category_name || "",
                           sizes: product.sizes || [],
                           colors: product.colors || []

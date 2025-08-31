@@ -18,6 +18,8 @@ import {
 import { productAPI, categoryAPI } from '@/services/apiClient';
 import { useAuth } from '@/context/AuthContext';
 import ProductImage from '@/components/ProductImage';
+import DeleteConfirmationModal from '@/components/admin/products/DeleteConfirmationModal';
+import { getTotalStock } from '@/utils/stockUtils';
 
 async function getProducts(page = 1, limit = 10, search = '', category = '') {
   const token = localStorage.getItem('auth_token');
@@ -41,7 +43,7 @@ async function deleteProduct(id) {
   if (!token) {
     throw new Error('Authentication required');
   }
-  return productAPI.deleteProduct(id + '/', token);
+  return productAPI.deleteProduct(id, token);
 }
 
 export default function ProductsPage() {
@@ -59,6 +61,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -117,16 +120,39 @@ export default function ProductsPage() {
   };
 
   const handleDeleteProduct = async (id) => {
+    setDeleting(true);
+    
     try {
+      setErrorMessage('');
+      setSuccessMessage('');
+      
       await deleteProduct(id);
+      
+      // Remove product from local state
       setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
       setPagination((prev) => ({ ...prev, totalProducts: prev.totalProducts - 1 }));
+      
       setSuccessMessage('Product deleted successfully');
-      setErrorMessage('');
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
     } catch (error) {
       console.error('Error deleting product:', error);
-      setErrorMessage(error.message || 'Failed to delete product');
+      
+      // Handle different types of errors
+      let errorMsg = 'Failed to delete product';
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      setErrorMessage(errorMsg);
     } finally {
+      setDeleting(false);
       setDeleteConfirm(null);
     }
   };
@@ -292,6 +318,7 @@ export default function ProductsPage() {
                                 src={product.images[1] || '/images/product-placeholder.jpg'}
                                 alt={product.name}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 200px"
                                 className="object-cover"
                                 onError={(e) => {
                                   e.target.style.display = 'none';
@@ -320,8 +347,30 @@ export default function ProductsPage() {
                         {typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price).toFixed(2)} EGP
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className={`text-sm ${product.stock < 10 ? 'text-red-600' : 'text-gray-900'}`}>
-                          {product.stock}
+                        <div className={`text-sm ${(() => {
+                          const totalStock = getTotalStock(product);
+                          return totalStock < 10 ? 'text-red-600' : 'text-gray-900';
+                        })()}`}>
+                          <div className="font-medium">
+                            Total: {getTotalStock(product)}
+                          </div>
+                          {product.sizeStock && typeof product.sizeStock === 'object' && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {Object.entries(product.sizeStock).map(([size, stock]) => {
+                                // تحويل القيمة إلى رقم للتأكد من أنها صحيحة
+                                const stockValue = typeof stock === 'object' ? 
+                                  (stock.quantity || 0) : 
+                                  (parseInt(stock) || 0);
+                                
+                                return (
+                                  <div key={size} className="flex justify-between">
+                                    <span className="font-medium">{size}:</span>
+                                    <span>{stockValue}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -368,6 +417,7 @@ export default function ProductsPage() {
                             src={product.image || '/images/product-placeholder.jpg'}
                             alt={product.name}
                             fill
+                            sizes="48px"
                             className="object-cover"
                             onError={(e) => {
                               e.target.style.display = 'none';
@@ -399,7 +449,25 @@ export default function ProductsPage() {
                   <div className="mt-2 text-sm text-gray-500">
                     <div>Category: {product.category?.name || 'N/A'}</div>
                     <div>Price: ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price).toFixed(2)}</div>
-                    <div className={product.stock < 10 ? 'text-red-600' : ''}>Stock: {product.stock}</div>
+                    <div className={`text-sm ${
+                      (() => {
+                        const totalStock = getTotalStock(product);
+                        return totalStock < 10 ? 'text-red-600' : '';
+                      })()
+                    }`}>
+                      <div className="font-medium">
+                        Stock: {getTotalStock(product)}
+                      </div>
+                      {product.sizeStock && typeof product.sizeStock === 'object' && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {Object.entries(product.sizeStock).map(([size, stock]) => (
+                            <span key={size} className="inline-block mr-2 bg-gray-100 px-1 rounded">
+                              {size}: {stock}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-3 flex space-x-2">
                     <Link
@@ -496,30 +564,12 @@ export default function ProductsPage() {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Confirm Delete</h3>
-            <p className="text-gray-500 mb-6 text-sm sm:text-base">
-              Are you sure you want to delete this product? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm sm:text-base"
-                onClick={() => handleDeleteProduct(deleteConfirm)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        show={!!deleteConfirm}
+        onClose={() => !deleting && setDeleteConfirm(null)}
+        onConfirm={() => handleDeleteProduct(deleteConfirm)}
+        submitting={deleting}
+      />
     </div>
   );
 }

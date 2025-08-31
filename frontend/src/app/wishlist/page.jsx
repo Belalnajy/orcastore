@@ -150,6 +150,7 @@ const WishlistPage = () => {
                       alt={product.name}
                       className="object-cover transition-transform duration-500 hover:scale-110"
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       onError={() => handleImageError(product.id)}
                     />}
 
@@ -183,16 +184,27 @@ const WishlistPage = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleAddToCart(product)}
-                  disabled={
-                    isAddingToCart || !product.stock || product.stock <= 0
-                  }
-                  className={`flex-1 py-2 rounded flex items-center justify-center transition-colors ${isAddingToCart ||
-                  !product.stock ||
-                  product.stock <= 0
-                    ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent/90"}`}>
+                  disabled={(() => {
+                    const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                      ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                      : product.stock || 0;
+                    return isAddingToCart || totalStock <= 0;
+                  })()}
+                  className={`flex-1 py-2 rounded flex items-center justify-center transition-colors ${(() => {
+                    const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                      ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                      : product.stock || 0;
+                    return isAddingToCart || totalStock <= 0
+                      ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                      : "bg-accent text-white hover:bg-accent/90";
+                  })()}`}>
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                  {(() => {
+                    const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                      ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                      : product.stock || 0;
+                    return totalStock > 0 ? "Add to Cart" : "Out of Stock";
+                  })()}
                 </button>
                 <button
                   onClick={() => handleRemoveFromWishlist(product.id)}

@@ -32,11 +32,11 @@ export default function EditProductPage({ params }) {
     description: '',
     category: '',
     price: '',
-    stock: '',
     isActive: true,
     features: [''],
     sizes: [''],
     colors: [''],
+    sizeStock: {},
     image: null,
   });
 
@@ -65,17 +65,54 @@ export default function EditProductPage({ params }) {
           categorySlug = categoryObj ? categoryObj.slug : '';
         }
 
+        // تحويل sizeStock من سلسلة JSON إلى كائن إذا لزم الأمر
+        let processedSizeStock = {};
+        if (productData.sizeStock) {
+          if (typeof productData.sizeStock === 'string') {
+            try {
+              processedSizeStock = JSON.parse(productData.sizeStock);
+            } catch (e) {
+              console.error('Error parsing sizeStock:', e);
+              processedSizeStock = {};
+            }
+          } else if (typeof productData.sizeStock === 'object') {
+            processedSizeStock = { ...productData.sizeStock };
+          }
+        }
+
+        // Sync sizes list with sizeStock keys (like add page logic)
+        // 1) Derive sizes from productData.sizes or from sizeStock keys
+        let derivedSizes = Array.isArray(productData.sizes) && productData.sizes.length > 0
+          ? [...productData.sizes]
+          : Object.keys(processedSizeStock);
+        if (derivedSizes.length === 0) derivedSizes = [''];
+
+        // 2) Normalize sizes (trim) and dedupe
+        derivedSizes = Array.from(new Set(derivedSizes.map(s => (typeof s === 'string' ? s.trim() : s)).filter(Boolean)));
+        if (derivedSizes.length === 0) derivedSizes = [''];
+
+        // 3) Ensure sizeStock has an entry for every size (default 0) and remove extraneous keys
+        const normalizedSizeStock = {};
+        for (const size of derivedSizes) {
+          if (size) {
+            const v = processedSizeStock && Object.prototype.hasOwnProperty.call(processedSizeStock, size)
+              ? processedSizeStock[size]
+              : 0;
+            normalizedSizeStock[size] = parseInt(v) || 0;
+          }
+        }
+
         setFormData({
           name: productData.name || '',
           slug: productData.slug || '',
           description: productData.description || '',
           price: productData.price || '',
-          stock: productData.stock || '',
           category: categorySlug,
           isActive: productData.isActive !== undefined ? productData.isActive : true,
           features: productData.features?.length > 0 ? productData.features : [''],
-          sizes: productData.sizes?.length > 0 ? productData.sizes : [''],
+          sizes: derivedSizes,
           colors: productData.colors?.length > 0 ? productData.colors : [''],
+          sizeStock: normalizedSizeStock,
           image: null,
         });
 
@@ -121,17 +158,70 @@ export default function EditProductPage({ params }) {
 
   const handleArrayField = (field, index, value) => {
     const newArray = [...formData[field]];
+    const oldValue = newArray[index];
     newArray[index] = value;
-    setFormData((prev) => ({ ...prev, [field]: newArray }));
+    
+    // If this is a size field and the value changed, update sizeStock accordingly
+    if (field === 'sizes') {
+      const newSizeStock = { ...formData.sizeStock };
+      
+      // If the old value existed in sizeStock, remove it
+      if (oldValue && newSizeStock[oldValue] !== undefined) {
+        delete newSizeStock[oldValue];
+      }
+      
+      // If the new value is not empty, initialize it with 0 stock
+      if (value.trim()) {
+        newSizeStock[value] = newSizeStock[value] || 0;
+      }
+      
+      setFormData((prev) => ({ 
+        ...prev, 
+        [field]: newArray,
+        sizeStock: newSizeStock
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: newArray
+      }));
+    }
   };
 
   const addArrayItem = (field) => {
     setFormData((prev) => ({ ...prev, [field]: [...prev[field], ''] }));
   };
 
+  // Handle size stock change
+  const handleSizeStockChange = (size, stock) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizeStock: {
+        ...prev.sizeStock,
+        [size]: parseInt(stock) || 0
+      }
+    }));
+  };
+
   const removeArrayItem = (field, index) => {
     const newArray = formData[field].filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, [field]: newArray.length === 0 ? [''] : newArray }));
+    
+    // If this is a size field, also remove it from sizeStock
+    if (field === 'sizes') {
+      const removedValue = formData[field][index];
+      const newSizeStock = { ...formData.sizeStock };
+      if (removedValue && newSizeStock[removedValue] !== undefined) {
+        delete newSizeStock[removedValue];
+      }
+      
+      setFormData((prev) => ({ 
+        ...prev, 
+        [field]: newArray.length === 0 ? [''] : newArray,
+        sizeStock: newSizeStock
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: newArray.length === 0 ? [''] : newArray }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -161,8 +251,13 @@ export default function EditProductPage({ params }) {
       });
 
       ['features', 'sizes', 'colors'].forEach((field) => {
-        formData[field].forEach((item) => item && productData.append(field, item));
+        if (field === 'features' || field === 'sizes' || field === 'colors') {
+          productData.append(field, JSON.stringify(formData[field].filter(item => item.trim())));
+        }
       });
+      
+      // Add sizeStock
+      productData.append('sizeStock', JSON.stringify(formData.sizeStock));
 
       if (formData.image) {
         productData.append('image', formData.image);
@@ -183,18 +278,37 @@ export default function EditProductPage({ params }) {
 
   const handleDelete = async () => {
     setSubmitting(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) {
         router.push('/admin/login');
         return;
       }
+      
       await productAPI.deleteProduct(productId, token);
+      
       setSuccessMessage('Product deleted successfully!');
-      setTimeout(() => router.push('/admin/products'), 2000);
+      
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        router.push('/admin/products');
+      }, 2000);
+      
     } catch (error) {
       console.error('Error deleting product:', error);
-      setErrorMessage(error.response?.data?.message || error.message || 'Failed to delete product');
+      
+      // Handle different types of errors
+      let errorMsg = 'Failed to delete product';
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      setErrorMessage(errorMsg);
       setSubmitting(false);
     } finally {
       setShowDeleteConfirm(false);
@@ -268,6 +382,7 @@ export default function EditProductPage({ params }) {
           handleArrayField={handleArrayField}
           addArrayItem={addArrayItem}
           removeArrayItem={removeArrayItem}
+          handleSizeStockChange={handleSizeStockChange}
         />
       </div>
 

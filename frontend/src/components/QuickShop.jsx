@@ -49,13 +49,26 @@ export default function QuickShop({ product, onQuickView }) {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleAddToCart}
-              disabled={!product.stock || product.stock <= 0 || cartQty >= product.stock}
-              className={`p-2 rounded-full ${
-                product.stock > 0 
+              disabled={(() => {
+                const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                  ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                  : product.stock || 0;
+                return totalStock <= 0 || cartQty >= totalStock;
+              })()}
+              className={`p-2 rounded-full ${(() => {
+                const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                  ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                  : product.stock || 0;
+                return totalStock > 0 
                   ? "bg-accent hover:bg-accent/90" 
-                  : "bg-gray-400 cursor-not-allowed"
-              } text-white transition-colors`}
-              title={product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                  : "bg-gray-400 cursor-not-allowed";
+              })()} text-white transition-colors`}
+              title={(() => {
+                const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                  ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                  : product.stock || 0;
+                return totalStock > 0 ? "Add to Cart" : "Out of Stock";
+              })()}
             >
               <ShoppingCart size={18} />
             </motion.button>

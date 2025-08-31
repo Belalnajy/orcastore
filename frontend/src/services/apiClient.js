@@ -181,7 +181,7 @@ export const productAPI = {
   // Delete a product
   deleteProduct: async (id, token) => {
     // Always use real API for deleting products
-    return fetchAPI(`admin/products/${id}/`, {
+    return fetchAPI(`admin/products/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`

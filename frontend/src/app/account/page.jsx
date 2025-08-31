@@ -171,6 +171,7 @@ export default function AccountPage() {
                     src={user.profileImage || "/images/avatar-placeholder.jpg"} 
                     alt={user.name} 
                     fill
+                    sizes="120px"
                     className="object-cover rounded-full"
                   />
                   {isEditing && (
@@ -313,6 +314,7 @@ export default function AccountPage() {
                                 src={item.image || "/images/product-placeholder.jpg"} 
                                 alt={item.name} 
                                 fill
+                                sizes="64px"
                                 className="object-cover"
                               />
                             </div>

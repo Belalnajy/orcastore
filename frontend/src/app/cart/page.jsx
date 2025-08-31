@@ -134,7 +134,12 @@ export default function CartPage() {
                         className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-r-md p-1 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
                         onClick={() =>
                           updateCartItemQuantity(item.id, item.quantity + 1)}
-                        disabled={item.product.stock <= item.quantity}>
+                        disabled={(() => {
+                          const totalStock = item.product.sizeStock && typeof item.product.sizeStock === 'object' 
+                            ? Object.values(item.product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                            : item.product.stock || 0;
+                          return totalStock <= item.quantity;
+                        })()}>
                         <Plus size={16} />
                       </button>
                     </div>

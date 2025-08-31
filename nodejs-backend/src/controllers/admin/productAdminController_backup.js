@@ -2,7 +2,6 @@ const asyncHandler = require("express-async-handler");
 const prisma = require("../../config/prisma");
 const fs = require("fs");
 const path = require("path");
-const cloudinary = require("../../config/cloudinaryConfig");
 
 // @desc    Get all products
 // @route   GET /api/admin/products
@@ -60,33 +59,11 @@ const getAllProducts = asyncHandler(async (req, res) => {
     }
   });
 
-  // Process sizeStock for each product
-  const processedProducts = products.map(product => {
-    let sizeStock = {};
-    
-    // Parse sizeStock if it's a string
-    if (typeof product.sizeStock === 'string') {
-      try {
-        sizeStock = JSON.parse(product.sizeStock);
-      } catch (e) {
-        console.error('Error parsing sizeStock for product:', product.id, e);
-        sizeStock = {};
-      }
-    } else if (typeof product.sizeStock === 'object' && product.sizeStock !== null) {
-      sizeStock = product.sizeStock;
-    }
-    
-    return {
-      ...product,
-      sizeStock
-    };
-  });
-
   const totalProducts = await prisma.product.count({ where });
   const totalPages = Math.ceil(totalProducts / limitNum);
 
   res.json({
-    products: processedProducts,
+    products,
     pagination: {
       page: pageNum,
       limit: limitNum,
@@ -127,37 +104,26 @@ const createProduct = asyncHandler(async (req, res) => {
     throw new Error("Category not found");
   }
 
-  // Parse sizeStock from JSON string if needed
-  let parsedSizeStock = {};
-  if (sizeStock) {
-    try {
-      parsedSizeStock = typeof sizeStock === 'string' ? JSON.parse(sizeStock) : sizeStock;
-    } catch (error) {
-      console.error('Error parsing sizeStock:', error);
-      parsedSizeStock = {};
-    }
-  }
-
   const data = {
     name,
     slug,
     description,
     price: parseFloat(price),
+    stock: parseInt(stock, 10),
     categoryId: categoryId,
     isActive: isActive === "true",
     features:
       typeof features === "string"
-        ? JSON.parse(features)
+        ? features.split(",").map((f) => f.trim())
         : features || [],
     sizes:
       typeof sizes === "string"
-        ? JSON.parse(sizes)
+        ? sizes.split(",").map((s) => s.trim())
         : sizes || [],
     colors:
       typeof colors === "string"
-        ? JSON.parse(colors)
+        ? colors.split(",").map((c) => c.trim())
         : colors || [],
-    sizeStock: parsedSizeStock
   };
 
   const images = req.files
@@ -200,37 +166,26 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
-  // Parse sizeStock from JSON string if needed
-  let parsedSizeStock = {};
-  if (sizeStock) {
-    try {
-      parsedSizeStock = typeof sizeStock === 'string' ? JSON.parse(sizeStock) : sizeStock;
-    } catch (error) {
-      console.error('Error parsing sizeStock:', error);
-      parsedSizeStock = {};
-    }
-  }
-
   const data = {
     name,
     slug,
     description,
     price: parseFloat(price),
+    stock: parseInt(stock, 10),
     categoryId: categoryId,
     isActive: isActive === "true",
     features:
       typeof features === "string"
-        ? JSON.parse(features)
+        ? features.split(",").map((f) => f.trim())
         : features || [],
     sizes:
       typeof sizes === "string"
-        ? JSON.parse(sizes)
+        ? sizes.split(",").map((s) => s.trim())
         : sizes || [],
     colors:
       typeof colors === "string"
-        ? JSON.parse(colors)
+        ? colors.split(",").map((c) => c.trim())
         : colors || [],
-    sizeStock: parsedSizeStock
   };
 
   // If new images are uploaded, delete old ones and add new paths
@@ -275,11 +230,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const product = await prisma.product.findUnique({
-    where: { id },
-    include: {
-      orderItems: true,
-      cartItems: true,
-    },
+    where: { id }
   });
 
   if (!product) {
@@ -287,47 +238,21 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
-  // Check if product has associated orders
-  if (product.orderItems && product.orderItems.length > 0) {
-    res.status(400);
-    throw new Error(
-      "Cannot delete product that has been ordered. Consider deactivating it instead."
-    );
-  }
-
-  try {
-    // Start transaction to ensure data consistency
-    await prisma.$transaction(async (prisma) => {
-      // Delete cart items first
-      if (product.cartItems && product.cartItems.length > 0) {
-        await prisma.cartItem.deleteMany({
-          where: { productId: id },
-        });
-      }
-
-      // Delete images from Cloudinary
-      if (product.images && product.images.length > 0) {
-        const deletePromises = product.images.map((url) => {
-          // Extract public_id from Cloudinary URL
-          const publicId = url.split("/").slice(-2).join("/").split(".")[0];
-          return cloudinary.uploader.destroy(publicId);
-        });
-
-        await Promise.all(deletePromises);
-      }
-
-      // Finally delete the product
-      await prisma.product.delete({
-        where: { id },
-      });
+  // Delete all product images from Cloudinary
+  if (product.images && product.images.length > 0) {
+    const deletePromises = product.images.map(url => {
+      // Extract public_id from the URL. Example: 'orcastore/filename'
+      const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+      return cloudinary.uploader.destroy(publicId);
     });
-
-    res.json({ message: "Product removed successfully" });
-  } catch (error) {
-    console.error("Error deleting product:", error);
-    res.status(500);
-    throw new Error("Failed to delete product. Please try again.");
+    await Promise.all(deletePromises);
   }
+
+  await prisma.product.delete({
+    where: { id }
+  });
+
+  res.json({ message: "Product removed" });
 });
 
 // @desc    Get single product by ID
@@ -343,25 +268,7 @@ const getProductById = asyncHandler(async (req, res) => {
   });
 
   if (product) {
-    // Process sizeStock
-    let sizeStock = {};
-    if (product.sizeStock) {
-      if (typeof product.sizeStock === 'string') {
-        try {
-          sizeStock = JSON.parse(product.sizeStock);
-        } catch (e) {
-          console.error('Error parsing sizeStock for product:', product.id, e);
-          sizeStock = {};
-        }
-      } else if (typeof product.sizeStock === 'object' && product.sizeStock !== null) {
-        sizeStock = { ...product.sizeStock };
-      }
-    }
-
-    res.json({
-      ...product,
-      sizeStock
-    });
+    res.json(product);
   } else {
     res.status(404);
     throw new Error("Product not found");

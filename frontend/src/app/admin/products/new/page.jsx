@@ -34,11 +34,11 @@ export default function NewProductPage() {
     description: '',
     categoryId: '',
     price: '',
-    stock: '',
     isActive: true,
     features: [''],
     sizes: [''],
     colors: [''],
+    sizeStock: {}, // Object to store stock for each size
     images: [] // now array
   });
   
@@ -117,11 +117,34 @@ export default function NewProductPage() {
   // Handle array fields (features, sizes, colors)
   const handleArrayField = (field, index, value) => {
     const newArray = [...formData[field]];
+    const oldValue = newArray[index];
     newArray[index] = value;
-    setFormData({
-      ...formData,
-      [field]: newArray
-    });
+    
+    // If this is a size field and the value changed, update sizeStock accordingly
+    if (field === 'sizes') {
+      const newSizeStock = { ...formData.sizeStock };
+      
+      // If the old value existed in sizeStock, remove it
+      if (oldValue && newSizeStock[oldValue] !== undefined) {
+        delete newSizeStock[oldValue];
+      }
+      
+      // If the new value is not empty, initialize it with 0 stock
+      if (value.trim()) {
+        newSizeStock[value] = newSizeStock[value] || 0;
+      }
+      
+      setFormData({
+        ...formData,
+        [field]: newArray,
+        sizeStock: newSizeStock
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [field]: newArray
+      });
+    }
   };
   
   // Add new item to array field
@@ -135,13 +158,40 @@ export default function NewProductPage() {
   // Remove item from array field
   const removeArrayItem = (field, index) => {
     const newArray = [...formData[field]];
+    const removedValue = newArray[index];
     newArray.splice(index, 1);
-    setFormData({
-      ...formData,
-      [field]: newArray.length ? newArray : [''] // Always keep at least one empty field
-    });
+    
+    // If this is a size field, also remove it from sizeStock
+    if (field === 'sizes') {
+      const newSizeStock = { ...formData.sizeStock };
+      if (removedValue && newSizeStock[removedValue] !== undefined) {
+        delete newSizeStock[removedValue];
+      }
+      
+      setFormData({
+        ...formData,
+        [field]: newArray.length ? newArray : [''], // Always keep at least one empty field
+        sizeStock: newSizeStock
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [field]: newArray.length ? newArray : [''] // Always keep at least one empty field
+      });
+    }
   };
   
+  // Handle size stock change
+  const handleSizeStockChange = (size, stock) => {
+    setFormData({
+      ...formData,
+      sizeStock: {
+        ...formData.sizeStock,
+        [size]: parseInt(stock) || 0
+      }
+    });
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -152,6 +202,14 @@ export default function NewProductPage() {
       // Validate form
       if (!formData.name || !formData.description || !formData.categoryId || !formData.price || !formData.images.length) {
         throw new Error('Please fill all required fields and upload at least one image.');
+      }
+      
+      // Validate that all sizes have stock defined
+      const validSizes = formData.sizes.filter(size => size.trim());
+      for (const size of validSizes) {
+        if (formData.sizeStock[size] === undefined) {
+          throw new Error(`Please set stock quantity for size: ${size}`);
+        }
       }
       
       // Get token from localStorage
@@ -167,11 +225,11 @@ export default function NewProductPage() {
       data.append('description', formData.description);
       data.append('categoryId', formData.categoryId);
       data.append('price', formData.price);
-      data.append('stock', formData.stock);
       data.append('isActive', formData.isActive);
       data.append('features', JSON.stringify(formData.features));
       data.append('sizes', JSON.stringify(formData.sizes));
       data.append('colors', JSON.stringify(formData.colors));
+      data.append('sizeStock', JSON.stringify(formData.sizeStock));
       formData.images.forEach((img, idx) => {
         data.append('images', img);
       });
@@ -287,41 +345,24 @@ export default function NewProductPage() {
               </select>
             </div>
             
-            {/* Price and Stock */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                  Price <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    EGP
-                  </span>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                  Stock <span className="text-red-500">*</span>
-                </label>
+            {/* Price */}
+            <div>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                Price <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                  EGP
+                </span>
                 <input
                   type="number"
-                  id="stock"
-                  name="stock"
-                  value={formData.stock}
+                  id="price"
+                  name="price"
+                  value={formData.price}
                   onChange={handleChange}
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+                  step="0.01"
+                  className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
                   required
                 />
               </div>
@@ -391,7 +432,7 @@ export default function NewProductPage() {
         </div>
         
         {/* Features, Sizes, Colors */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Features */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,39 +463,6 @@ export default function NewProductPage() {
             >
               <Plus className="h-4 w-4 mr-1" />
               Add Feature
-            </button>
-          </div>
-          
-          {/* Sizes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Sizes
-            </label>
-            {formData.sizes.map((size, index) => (
-              <div key={`size-${index}`} className="flex mb-2">
-                <input
-                  type="text"
-                  value={size}
-                  onChange={(e) => handleArrayField('sizes', index, e.target.value)}
-                  className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
-                  placeholder="e.g. S, M, L"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeArrayItem('sizes', index)}
-                  className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-r-md"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayItem('sizes')}
-              className="mt-2 flex items-center text-sm text-secondary hover:text-secondary/80"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Size
             </button>
           </div>
           
@@ -489,6 +497,87 @@ export default function NewProductPage() {
               <Plus className="h-4 w-4 mr-1" />
               Add Color
             </button>
+          </div>
+        </div>
+        
+        {/* Sizes and Stock Management */}
+        <div className="mt-8">
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Sizes & Stock Management <span className="text-red-500">*</span>
+          </label>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            {/* Size Input Section */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Available Sizes
+              </label>
+              {formData.sizes.map((size, index) => (
+                <div key={`size-${index}`} className="flex mb-2">
+                  <input
+                    type="text"
+                    value={size}
+                    onChange={(e) => handleArrayField('sizes', index, e.target.value)}
+                    className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+                    placeholder="e.g. S, M, L, XL"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeArrayItem('sizes', index)}
+                    className="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-r-md"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addArrayItem('sizes')}
+                className="mt-2 flex items-center text-sm text-secondary hover:text-secondary/80"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Size
+              </button>
+            </div>
+            
+            {/* Stock Management Section */}
+            {formData.sizes.some(size => size.trim()) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-3">
+                  Stock Quantity for Each Size
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {formData.sizes
+                    .filter(size => size.trim()) // Only show non-empty sizes
+                    .map((size, index) => (
+                    <div key={`stock-${size}-${index}`} className="bg-white p-3 rounded-md border">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Size: <span className="font-bold text-secondary">{size}</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.sizeStock[size] || ''}
+                        onChange={(e) => handleSizeStockChange(size, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+                        placeholder="0"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {formData.sizeStock[size] > 0 ? 
+                          `${formData.sizeStock[size]} في المخزون` : 
+                          'غير متوفر'
+                        }
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-700">
+                    <strong>ملاحظة:</strong> المقاسات التي لها مخزون 0 أو فارغة لن تظهر كمتاحة للعملاء
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         

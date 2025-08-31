@@ -190,7 +190,18 @@ export const CartProvider = ({ children }) => {
       (i) => i.product.id === product.id && i.size === size && i.color === color
     );
     const currentQty = existingItem ? existingItem.quantity : 0;
-    if (currentQty + quantity > (product.stock ?? Infinity)) {
+    // Calculate available stock for the specific size or total stock
+    const availableStock = (() => {
+      if (size && product.sizeStock && typeof product.sizeStock === 'object') {
+        return product.sizeStock[size] || 0;
+      }
+      if (product.sizeStock && typeof product.sizeStock === 'object') {
+        return Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+      }
+      return product.stock ?? Infinity;
+    })();
+    
+    if (currentQty + quantity > availableStock) {
       toast.error("Exceeds available stock");
       return;
     }

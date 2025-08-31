@@ -327,10 +327,20 @@ export default function DashboardPage() {
                   </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                     <div
-                      className={`text-sm ${product.stock < 10
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-green-600 dark:text-green-400"}`}>
-                      {product.stock} in stock
+                      className={`text-sm ${(() => {
+                        const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                          ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                          : product.stock || 0;
+                        return totalStock < 10
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400";
+                      })()}`}>
+                      {(() => {
+                        const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                          ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                          : product.stock || 0;
+                        return totalStock;
+                      })()} in stock
                     </div>
                   </td>
                 </tr>

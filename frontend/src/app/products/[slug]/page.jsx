@@ -146,9 +146,32 @@ export default function ProductPage({ params }) {
   };
 
   const increaseQuantity = () => {
-    if (product && quantity < product.stock) {
+    if (product && quantity < getAvailableStock()) {
       setQuantity(quantity + 1);
     }
+  };
+
+  // Get available stock based on selected size
+  const getAvailableStock = () => {
+    if (!product) return 0;
+    
+    // If product has sizes and a size is selected, return stock for that size
+    if (product.sizes && product.sizes.length > 0 && selectedSize) {
+      return product.sizeStock?.[selectedSize] || 0;
+    }
+    
+    // If product has sizes but no size selected, return 0
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      return 0;
+    }
+    
+    // If product has no sizes, calculate total stock from all sizes
+    if (product.sizeStock && typeof product.sizeStock === 'object') {
+      return Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+    }
+    
+    // Fallback to old stock field if exists
+    return product.stock || 0;
   };
 
   if (loading) {
@@ -312,18 +335,37 @@ export default function ProductPage({ params }) {
             <div className="mb-6">
               <h3 className="font-semibold mb-2 dark:text-white">Size:</h3>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map(size =>
-                  <button
-                    key={size}
-                    className={`px-4 py-2 border rounded-md ${selectedSize ===
-                    size
-                      ? "border-secondary bg-secondary/10 text-secondary dark:bg-secondary/20"
-                      : "border-gray-300 dark:border-gray-600 hover:border-secondary dark:text-gray-300"}`}
-                    onClick={() => setSelectedSize(size)}>
-                    {size}
-                  </button>
-                )}
+                {product.sizes.map(size => {
+                  const sizeStock = product.sizeStock?.[size] || 0;
+                  const isOutOfStock = sizeStock === 0;
+                  
+                  return (
+                    <button
+                      key={size}
+                      className={`px-4 py-2 border rounded-md relative ${
+                        selectedSize === size
+                          ? "border-secondary bg-secondary/10 text-secondary dark:bg-secondary/20"
+                          : isOutOfStock
+                          ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-600"
+                          : "border-gray-300 dark:border-gray-600 hover:border-secondary dark:text-gray-300"
+                      }`}
+                      onClick={() => !isOutOfStock && setSelectedSize(size)}
+                      disabled={isOutOfStock}>
+                      {size}
+                      {isOutOfStock && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">
+                          ×
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+              {selectedSize && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  {product.sizeStock?.[selectedSize] || 0} items available in size {selectedSize}
+                </p>
+              )}
             </div>}
 
           {/* Color Selection */}
@@ -363,11 +405,12 @@ export default function ProductPage({ params }) {
               <button
                 className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-r-md p-2 transition-colors"
                 onClick={increaseQuantity}
-                disabled={product.stock <= quantity}>
+                disabled={getAvailableStock() <= quantity}>
                 <Plus size={16} />
               </button>
               <span className="ml-4 text-sm text-gray-500 dark:text-gray-400">
-                {product.stock} items available
+                {getAvailableStock()} items available
+                {selectedSize && ` in size ${selectedSize}`}
               </span>
             </div>
           </div>
@@ -375,11 +418,11 @@ export default function ProductPage({ params }) {
           {/* Add to Cart */}
           <div className="flex flex-col md:flex-col lg:flex-col xl:flex-row gap-1 mb-6">
             <button
-              className="flex-1 bg-secondary text-white py-3 px-6 rounded-md font-semibold md:text-md flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors"
+              className="flex-1 bg-secondary text-white py-3 px-6 rounded-md font-semibold md:text-md flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               onClick={handleAddToCart}
-              disabled={product.stock === 0}>
+              disabled={getAvailableStock() === 0 || (product.sizes?.length > 0 && !selectedSize)}>
               <ShoppingCart size={20} />
-              Add to Cart
+              {getAvailableStock() === 0 ? 'Out of Stock' : 'Add to Cart'}
             </button>
             <button
               onClick={() => {
@@ -415,10 +458,16 @@ export default function ProductPage({ params }) {
 
           {/* Stock Status */}
           <div
-            className={`text-sm ${product.stock > 0
-              ? "text-green-600 dark:text-green-400"
-              : "text-red-600 dark:text-red-400"}`}>
-            {product.stock > 0 ? "In Stock" : "Out of Stock"}
+            className={`text-sm ${(() => {
+              const totalStock = getAvailableStock();
+              return totalStock > 0
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400";
+            })()}`}>
+            {(() => {
+              const totalStock = getAvailableStock();
+              return totalStock > 0 ? "In Stock" : "Out of Stock";
+            })()}
           </div>
         </div>
       </div>

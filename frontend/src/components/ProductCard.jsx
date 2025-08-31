@@ -95,8 +95,18 @@ export default function ProductCard({ product, onQuickView }) {
             onClick={() => {
               router.push(`/products/${product.slug}`);
             }}
-            disabled={!product.stock || product.stock <= 0 || isAddingToCart}
-            title={product.stock > 0 ? "Add to Cart" : "Out of Stock"}>
+            disabled={(() => {
+              const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                : product.stock || 0;
+              return totalStock <= 0 || isAddingToCart;
+            })()} 
+            title={(() => {
+              const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                : product.stock || 0;
+              return totalStock > 0 ? "Add to Cart" : "Out of Stock";
+            })()}>
             <ShoppingCart size={18} />
           </motion.button>
 
@@ -156,13 +166,19 @@ export default function ProductCard({ product, onQuickView }) {
                 EGP
               </span>}
           </div>
-          {product.stock > 0
-            ? <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-full">
-                Available
-              </span>
-            : <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 rounded-full">
-                Unavailable
-              </span>}
+          {(() => {
+            const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+              ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+              : product.stock || 0;
+            
+            return totalStock > 0
+              ? <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-full">
+                  Available
+                </span>
+              : <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 rounded-full">
+                  Unavailable
+                </span>;
+          })()}
         </div>
       </div>
     </motion.div>

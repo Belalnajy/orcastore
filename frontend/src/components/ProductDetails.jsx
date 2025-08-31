@@ -53,11 +53,21 @@ const ProductDetails = ({ product }) => {
           <div className="mt-auto">
             <button
               onClick={handleAddToCart}
-              disabled={isAddingToCart || !product.stock || product.stock <= 0}
+              disabled={(() => {
+                const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                  ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                  : product.stock || 0;
+                return isAddingToCart || totalStock <= 0;
+              })()}
               className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
               {isAddingToCart
                 ? "Adding..."
-                : product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                : (() => {
+                    const totalStock = product.sizeStock && typeof product.sizeStock === 'object' 
+                      ? Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
+                      : product.stock || 0;
+                    return totalStock > 0 ? "Add to Cart" : "Out of Stock";
+                  })()}
             </button>
           </div>
         </div>
