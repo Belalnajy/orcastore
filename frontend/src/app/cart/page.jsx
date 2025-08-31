@@ -135,10 +135,17 @@ export default function CartPage() {
                         onClick={() =>
                           updateCartItemQuantity(item.id, item.quantity + 1)}
                         disabled={(() => {
-                          const totalStock = item.product.sizeStock && typeof item.product.sizeStock === 'object' 
-                            ? Object.values(item.product.sizeStock).reduce((total, stock) => total + (stock || 0), 0)
-                            : item.product.stock || 0;
-                          return totalStock <= item.quantity;
+                          // Check stock for the specific size only
+                          const availableStock = (() => {
+                            if (item.size && item.product.sizeStock && typeof item.product.sizeStock === 'object') {
+                              return item.product.sizeStock[item.size] || 0;
+                            }
+                            if (item.product.sizeStock && typeof item.product.sizeStock === 'object') {
+                              return Object.values(item.product.sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+                            }
+                            return item.product.stock || 0;
+                          })();
+                          return availableStock <= item.quantity;
                         })()}>
                         <Plus size={16} />
                       </button>

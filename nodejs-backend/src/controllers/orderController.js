@@ -1,4 +1,7 @@
-const prisma = require("../config/prisma");
+const asyncHandler = require("express-async-handler");
+const { PrismaClient } = require("@prisma/client");
+const { sendNewOrderNotification, sendOrderConfirmation } = require('../services/emailService');
+const prisma = new PrismaClient();
 
 // --- Create a new order ---
 const createOrder = async (req, res) => {
@@ -24,7 +27,36 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
-    // 2. Calculate the total amount
+    // 2. Validate stock availability for each item
+    for (const item of cart.items) {
+      const product = item.product;
+      let availableStock = 0;
+      
+      // Check size-specific stock if size is specified
+      if (item.size && product.sizeStock) {
+        const sizeStock = typeof product.sizeStock === 'string' 
+          ? JSON.parse(product.sizeStock) 
+          : product.sizeStock;
+        availableStock = sizeStock[item.size] || 0;
+      } else if (product.sizeStock) {
+        // If no size specified, use total stock from sizeStock
+        const sizeStock = typeof product.sizeStock === 'string' 
+          ? JSON.parse(product.sizeStock) 
+          : product.sizeStock;
+        availableStock = Object.values(sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+      } else {
+        // Fallback to legacy stock field
+        availableStock = product.stock || 0;
+      }
+      
+      if (availableStock < item.quantity) {
+        return res.status(400).json({ 
+          message: `Insufficient stock for ${product.name}${item.size ? ` (Size: ${item.size})` : ''}. Available: ${availableStock}, Requested: ${item.quantity}` 
+        });
+      }
+    }
+
+    // 3. Calculate the total amount
     const totalAmount = cart.items.reduce((sum, item) => {
       return sum + item.product.price * item.quantity;
     }, 0);
@@ -66,11 +98,81 @@ const createOrder = async (req, res) => {
         }
       });
 
+      // Reduce stock for each item
+      for (const item of cart.items) {
+        const product = item.product;
+        
+        if (item.size && product.sizeStock) {
+          // Update size-specific stock
+          const sizeStock = typeof product.sizeStock === 'string' 
+            ? JSON.parse(product.sizeStock) 
+            : product.sizeStock;
+          
+          if (sizeStock[item.size]) {
+            sizeStock[item.size] = Math.max(0, sizeStock[item.size] - item.quantity);
+            
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { sizeStock: JSON.stringify(sizeStock) }
+            });
+          }
+        } else if (product.sizeStock) {
+          // If no size specified, reduce from first available size or proportionally
+          const sizeStock = typeof product.sizeStock === 'string' 
+            ? JSON.parse(product.sizeStock) 
+            : product.sizeStock;
+          
+          let remainingToReduce = item.quantity;
+          for (const [size, stock] of Object.entries(sizeStock)) {
+            if (remainingToReduce <= 0) break;
+            const reduction = Math.min(stock, remainingToReduce);
+            sizeStock[size] = Math.max(0, stock - reduction);
+            remainingToReduce -= reduction;
+          }
+          
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { sizeStock: JSON.stringify(sizeStock) }
+          });
+        } else {
+          // Fallback to legacy stock field
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } }
+          });
+        }
+      }
+
       // Clear the user's cart
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return newOrder;
     });
+
+    // إرسال إشعار بالإيميل للإدارة
+    try {
+      // جلب تفاصيل المنتجات للإيميل
+      const orderWithItems = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
+
+      await sendNewOrderNotification(order, orderWithItems.items);
+      
+      // إرسال تأكيد للعميل إذا كان لديه إيميل
+      if (email) {
+        await sendOrderConfirmation(email, order, orderWithItems.items);
+      }
+    } catch (emailError) {
+      console.error('خطأ في إرسال الإيميل:', emailError);
+      // لا نريد أن يفشل الطلب بسبب خطأ في الإيميل
+    }
 
     res.status(201).json(order);
   } catch (error) {
@@ -187,11 +289,31 @@ const createGuestOrder = async (req, res) => {
           .status(400)
           .json({ message: `Product ${item.productId} not found` });
       }
-      if (product.stock < item.quantity) {
+      
+      // Check size-specific stock
+      let availableStock = 0;
+      if (item.size && product.sizeStock) {
+        const sizeStock = typeof product.sizeStock === 'string' 
+          ? JSON.parse(product.sizeStock) 
+          : product.sizeStock;
+        availableStock = sizeStock[item.size] || 0;
+      } else if (product.sizeStock) {
+        // If no size specified, use total stock from sizeStock
+        const sizeStock = typeof product.sizeStock === 'string' 
+          ? JSON.parse(product.sizeStock) 
+          : product.sizeStock;
+        availableStock = Object.values(sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+      } else {
+        // Fallback to legacy stock field
+        availableStock = product.stock || 0;
+      }
+      
+      if (availableStock < item.quantity) {
         return res
           .status(400)
-          .json({ message: `Insufficient stock for ${product.name}` });
+          .json({ message: `Insufficient stock for ${product.name}${item.size ? ` (Size: ${item.size})` : ''}. Available: ${availableStock}, Requested: ${item.quantity}` });
       }
+      
       totalAmount += product.price * item.quantity;
     }
 
@@ -225,14 +347,76 @@ const createGuestOrder = async (req, res) => {
 
       // Reduce stock
       for (const item of items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } }
-        });
+        const product = productMap[item.productId];
+        
+        if (item.size && product.sizeStock) {
+          // Update size-specific stock
+          const sizeStock = typeof product.sizeStock === 'string' 
+            ? JSON.parse(product.sizeStock) 
+            : product.sizeStock;
+          
+          if (sizeStock[item.size]) {
+            sizeStock[item.size] = Math.max(0, sizeStock[item.size] - item.quantity);
+            
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { sizeStock: JSON.stringify(sizeStock) }
+            });
+          }
+        } else if (product.sizeStock) {
+          // If no size specified, reduce from first available size or proportionally
+          const sizeStock = typeof product.sizeStock === 'string' 
+            ? JSON.parse(product.sizeStock) 
+            : product.sizeStock;
+          
+          let remainingToReduce = item.quantity;
+          for (const [size, stock] of Object.entries(sizeStock)) {
+            if (remainingToReduce <= 0) break;
+            const reduction = Math.min(stock, remainingToReduce);
+            sizeStock[size] = Math.max(0, stock - reduction);
+            remainingToReduce -= reduction;
+          }
+          
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { sizeStock: JSON.stringify(sizeStock) }
+          });
+        } else {
+          // Fallback to legacy stock field
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } }
+          });
+        }
       }
 
       return newOrder;
     });
+
+    // إرسال إشعار بالإيميل للإدارة
+    try {
+      // جلب تفاصيل المنتجات للإيميل
+      const orderWithItems = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
+
+      await sendNewOrderNotification(order, orderWithItems.items);
+      
+      // إرسال تأكيد للعميل إذا كان لديه إيميل
+      if (email) {
+        await sendOrderConfirmation(email, order, orderWithItems.items);
+      }
+    } catch (emailError) {
+      console.error('خطأ في إرسال الإيميل:', emailError);
+      // لا نريد أن يفشل الطلب بسبب خطأ في الإيميل
+    }
 
     res.status(201).json(order);
   } catch (error) {

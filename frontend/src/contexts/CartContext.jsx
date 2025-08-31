@@ -190,19 +190,23 @@ export const CartProvider = ({ children }) => {
       (i) => i.product.id === product.id && i.size === size && i.color === color
     );
     const currentQty = existingItem ? existingItem.quantity : 0;
-    // Calculate available stock for the specific size or total stock
+    
+    // Calculate available stock for the specific size ONLY
     const availableStock = (() => {
+      // If size is specified and product has sizeStock, use size-specific stock
       if (size && product.sizeStock && typeof product.sizeStock === 'object') {
         return product.sizeStock[size] || 0;
       }
+      // If no size specified but product has sizeStock, use total stock
       if (product.sizeStock && typeof product.sizeStock === 'object') {
         return Object.values(product.sizeStock).reduce((total, stock) => total + (stock || 0), 0);
       }
-      return product.stock ?? Infinity;
+      // Fallback to legacy stock field
+      return product.stock ?? 0;
     })();
     
     if (currentQty + quantity > availableStock) {
-      toast.error("Exceeds available stock");
+      toast.error(`Only ${availableStock} items available${size ? ` for size ${size}` : ''}`);
       return;
     }
     await perform(
@@ -216,13 +220,39 @@ export const CartProvider = ({ children }) => {
     toast.success("Added to cart");
   };
 
-  const updateCartItemQuantity = (itemId, quantity) =>
-    perform(
+  const updateCartItemQuantity = (itemId, quantity) => {
+    // Find the cart item to check stock
+    const cartItem = cartItems.find(item => item.id === itemId);
+    if (!cartItem) {
+      toast.error("Item not found in cart");
+      return;
+    }
+
+    // Calculate available stock for the specific size
+    const availableStock = (() => {
+      if (cartItem.size && cartItem.product.sizeStock && typeof cartItem.product.sizeStock === 'object') {
+        return cartItem.product.sizeStock[cartItem.size] || 0;
+      }
+      if (cartItem.product.sizeStock && typeof cartItem.product.sizeStock === 'object') {
+        return Object.values(cartItem.product.sizeStock).reduce((total, stock) => total + (stock || 0), 0);
+      }
+      return cartItem.product.stock || 0;
+    })();
+
+    // Check if requested quantity exceeds available stock
+    if (quantity > availableStock) {
+      toast.error(`Only ${availableStock} items available${cartItem.size ? ` for size ${cartItem.size}` : ''}`);
+      return;
+    }
+
+    // If quantity is valid, proceed with update
+    return perform(
       (...args) => apiCartHandler(authToken).update(...args),
       guestCartHandler.update,
       itemId,
       quantity
     );
+  };
 
   const removeFromCart = (itemId) =>
     perform(
