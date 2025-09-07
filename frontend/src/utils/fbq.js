@@ -4,6 +4,25 @@
 export const PIXEL_ID = "24440721158921753"; // optional reference
 export const DEFAULT_CURRENCY = "EGP"; // Egyptian Pound
 
+function debugEnabled() {
+  // Env flag (build/runtime)
+  const envFlag = typeof process !== "undefined" && process.env && process.env.NEXT_PUBLIC_FB_PIXEL_DEBUG === "true";
+  // URL flag (?fbq_debug=true)
+  let urlFlag = false;
+  // LocalStorage flag (FBQ_DEBUG=true)
+  let lsFlag = false;
+  if (typeof window !== "undefined") {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      urlFlag = sp.get("fbq_debug") === "true";
+    } catch (_) {}
+    try {
+      lsFlag = window.localStorage && window.localStorage.getItem("FBQ_DEBUG") === "true";
+    } catch (_) {}
+  }
+  return envFlag || urlFlag || lsFlag;
+}
+
 export function isBrowser() {
   return typeof window !== "undefined";
 }
@@ -15,9 +34,18 @@ export function isFbqReady() {
 export function track(event, params = {}) {
   if (!isFbqReady()) return false;
   try {
+    if (debugEnabled()) {
+      // Non-blocking debug log
+      // eslint-disable-next-line no-console
+      console.debug("[FBQ] track:", event, params);
+    }
     window.fbq("track", event, params);
     return true;
   } catch (e) {
+    if (debugEnabled()) {
+      // eslint-disable-next-line no-console
+      console.debug("[FBQ] error:", e);
+    }
     return false;
   }
 }
