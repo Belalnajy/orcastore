@@ -62,3 +62,30 @@ export function trackPurchase({ value, currency = DEFAULT_CURRENCY, contents = [
     content_type: "product",
   });
 }
+
+// Additional standard Meta events
+export function trackSearch({ search_string = "", content_category, contents = [] } = {}) {
+  return track("Search", {
+    search_string,
+    content_category,
+    contents,
+  });
+}
+
+export function trackAddToWishlist({ id, value, currency = DEFAULT_CURRENCY } = {}) {
+  return track("AddToWishlist", {
+    content_ids: id ? [String(id)] : undefined,
+    content_type: "product",
+    value,
+    currency,
+  });
+}
+
+export function trackAddPaymentInfo({ value, currency = DEFAULT_CURRENCY, contents = [] } = {}) {
+  return track("AddPaymentInfo", {
+    value,
+    currency,
+    contents,
+    content_type: "product",
+  });
+}
