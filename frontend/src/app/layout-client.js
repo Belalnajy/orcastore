@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect } from "react";
+import { trackPageView } from "../utils/fbq";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,11 +30,7 @@ export default function RootLayoutClient({ children }) {
   
   // Track client-side route changes as PageView events
   useEffect(() => {
-    if (typeof window !== "undefined" && window.fbq) {
-      try {
-        window.fbq("track", "PageView");
-      } catch (_) {}
-    }
+    trackPageView();
   }, [pathname]);
 
   return (
