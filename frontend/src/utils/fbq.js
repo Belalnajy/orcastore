@@ -23,6 +23,10 @@ function debugEnabled() {
   return envFlag || urlFlag || lsFlag;
 }
 
+export function isDebugEnabled() {
+  return debugEnabled();
+}
+
 export function isBrowser() {
   return typeof window !== "undefined";
 }
@@ -40,6 +44,14 @@ export function track(event, params = {}) {
       console.debug("[FBQ] track:", event, params);
     }
     window.fbq("track", event, params);
+    // Fire a DOM event so UI overlays or tools can react
+    if (typeof window !== "undefined") {
+      try {
+        window.dispatchEvent(
+          new CustomEvent("fbq:tracked", { detail: { event, params, timestamp: Date.now() } })
+        );
+      } catch (_) {}
+    }
     return true;
   } catch (e) {
     if (debugEnabled()) {

@@ -12,6 +12,8 @@ import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect } from "react";
 import { trackPageView } from "../utils/fbq";
+import dynamic from "next/dynamic";
+const FbqDebugOverlay = dynamic(() => import("../components/dev/FbqDebugOverlay"), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,6 +80,8 @@ fbq('track', 'PageView');`
               {!hideHeader && <Header />}
               <main className="flex-grow">{children}</main>
               <Footer />
+              {/* Visual overlay for Meta Pixel debug */}
+              <FbqDebugOverlay />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
